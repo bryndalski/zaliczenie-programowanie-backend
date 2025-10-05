@@ -1,0 +1,30 @@
+{
+  "name": "zaliczenie-studia",
+  "version": "1.0.0",
+  "description": "projekt zaliczeniowy przedmiotu programiwanie back-end",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "mkdir -p dist/layers/deps-layer && cp package*.json dist/layers/deps-layer/ && cp yarn.lock dist/layers/deps-layer/ && cd dist/layers/deps-layer && yarn --frozen-lockfile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bryndalski/zaliczenie-programowanie-backend.git"
+  },
+  "author": "bryndalski",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bryndalski/zaliczenie-programowanie-backend/issues"
+  },
+  "homepage": "https://github.com/bryndalski/zaliczenie-programowanie-backend#readme",
+  "dependencies": {
+    "@aws-lambda-powertools/logger": "^2.27.0",
+    "@aws-lambda-powertools/metrics": "^2.27.0",
+    "@aws-lambda-powertools/tracer": "^2.27.0"
+  },
+  "devDependencies": {
+    "@swc/jest": "^0.2.39",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0"
+  }
+}

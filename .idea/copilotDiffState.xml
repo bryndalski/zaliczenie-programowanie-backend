@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/backend/layers/telemetry/main.ts">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/backend/layers/telemetry/main.ts" />
+              <option name="originalContent" value="import { Logger } from '@aws-lambda-powertools/logger';&#10;import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';&#10;import { Metrics } from '@aws-lambda-powertools/metrics';&#10;import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';&#10;import { Tracer } from '@aws-lambda-powertools/tracer';&#10;import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';&#10;&#10;&#10;import type { TelemetryTools } from './TelemetryTools';&#10;&#10;/**&#10; * Get instances of all the _telemetry tools we use.&#10; * @param serviceName Service name of Telemetry&#10; * @param namespace Namespace of Telemetry&#10; */&#10;export const getTelemetryTools = (serviceName: string, namespace: string): TelemetryTools =&gt; {&#10;    const tracer = new Tracer({ serviceName });&#10;    const logger = new Logger({ serviceName, logLevel: getLogLevel() });&#10;    const metrics = new Metrics({ serviceName, namespace });&#10;&#10;    return { tracer, logger, metrics };&#10;};&#10;&#10;/**&#10; * Returns an array of the default Middy middlewares that we use.&#10; */&#10;export const telemetryMiddleware = ({ logger, tracer, metrics }: TelemetryTools) =&gt; {&#10;    return [&#10;        captureLambdaHandler(tracer),&#10;        injectLambdaContext(logger),&#10;        logMetrics(metrics, { captureColdStartMetric: true }),&#10;    ];&#10;};&#10;&#10;const getLogLevel = () =&gt; {&#10;    if (NodeEnv.isDevelopment()) {&#10;        return 'DEBUG';&#10;    }&#10;    if (NodeEnv.isProduction()) {&#10;        return 'INFO';&#10;    }&#10;&#10;    if (NodeEnv.isQa()) {&#10;        return 'DEBUG';&#10;    }&#10;&#10;&#10;    return 'INFO';&#10;};&#10;" />
+              <option name="updatedContent" value="import { Logger } from '@aws-lambda-powertools/logger';&#10;import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';&#10;import { Metrics } from '@aws-lambda-powertools/metrics';&#10;import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';&#10;import { Tracer } from '@aws-lambda-powertools/tracer';&#10;import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';&#10;&#10;&#10;import type { TelemetryTools } from './TelemetryTools';&#10;&#10;/**&#10; * Get instances of all the _telemetry tools we use.&#10; * @param serviceName Service name of Telemetry&#10; * @param namespace Namespace of Telemetry&#10; */&#10;export const getTelemetryTools = (serviceName: string, namespace: string): TelemetryTools =&gt; {&#10;    const tracer = new Tracer({ serviceName });&#10;    const logger = new Logger({ serviceName, logLevel: getLogLevel() });&#10;    const metrics = new Metrics({ serviceName, namespace });&#10;&#10;    return { tracer, logger, metrics };&#10;};&#10;&#10;/**&#10; * Returns an array of the default Middy middlewares that we use.&#10; */&#10;export const telemetryMiddleware = ({ logger, tracer, metrics }: TelemetryTools) =&gt; {&#10;    return [&#10;        captureLambdaHandler(tracer),&#10;        injectLambdaContext(logger),&#10;        logMetrics(metrics, { captureColdStartMetric: true }),&#10;    ];&#10;};&#10;&#10;const getLogLevel = () =&gt; {&#10;    if (NodeEnv.isDevelopment()) {&#10;        return 'DEBUG';&#10;    }&#10;    if (NodeEnv.isProduction()) {&#10;        return 'INFO';&#10;    }&#10;&#10;    if (NodeEnv.isQa()) {&#10;        return 'DEBUG';&#10;    }&#10;&#10;&#10;    return 'INFO';&#10;};&#10;&#10;// Export getLogLevel if needed externally&#10;export { getLogLevel };&#10;&#10;// No Lambda handler code here; only utilities for use in Lambda functions" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/tsconfig.json">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/tsconfig.json" />
+              <option name="updatedContent" value="{&#10;  &quot;compilerOptions&quot;: {&#10;    &quot;target&quot;: &quot;ES2020&quot;,&#10;    &quot;module&quot;: &quot;CommonJS&quot;,&#10;    &quot;lib&quot;: [&quot;ES2020&quot;],&#10;    &quot;outDir&quot;: &quot;./dist&quot;,&#10;    &quot;rootDir&quot;: &quot;./&quot;,&#10;    &quot;strict&quot;: true,&#10;    &quot;esModuleInterop&quot;: true,&#10;    &quot;forceConsistentCasingInFileNames&quot;: true,&#10;    &quot;skipLibCheck&quot;: true,&#10;    &quot;declaration&quot;: true&#10;  },&#10;  &quot;include&quot;: [&#10;    &quot;./layers/telemetry/**/*.ts&quot;&#10;  ],&#10;  &quot;exclude&quot;: [&#10;    &quot;node_modules&quot;,&#10;    &quot;dist&quot;&#10;  ]&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

@@ -1,0 +1,54 @@
+Arguments: 
+  /usr/local/bin/node /usr/local/bin/yarn add @aws-lambda-powertools
+
+PATH: 
+  /opt/anaconda3/condabin:/Library/Frameworks/Python.framework/Versions/3.11/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/X11/bin:/Library/Apple/usr/bin:/usr/local/share/dotnet:~/.dotnet/tools:/usr/local/go/bin
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  22.13.1
+
+Platform: 
+  darwin arm64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/@aws-lambda-powertools: Request "https://registry.yarnpkg.com/@aws-lambda-powertools" returned a 405
+      at params.callback [as _callback] (/usr/local/lib/node_modules/yarn/lib/cli.js:66154:18)
+      at self.callback (/usr/local/lib/node_modules/yarn/lib/cli.js:140890:22)
+      at Request.emit (node:events:524:28)
+      at Request.<anonymous> (/usr/local/lib/node_modules/yarn/lib/cli.js:141862:10)
+      at Request.emit (node:events:524:28)
+      at IncomingMessage.<anonymous> (/usr/local/lib/node_modules/yarn/lib/cli.js:141784:12)
+      at Object.onceWrapper (node:events:638:28)
+      at IncomingMessage.emit (node:events:536:35)
+      at endReadableNT (node:internal/streams/readable:1698:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+
+npm manifest: 
+  {
+    "name": "zaliczenie-studia",
+    "version": "1.0.0",
+    "description": "projekt zaliczeniowy przedmiotu programiwanie back-end",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/bryndalski/zaliczenie-programowanie-backend.git"
+    },
+    "author": "bryndalski",
+    "license": "ISC",
+    "bugs": {
+      "url": "https://github.com/bryndalski/zaliczenie-programowanie-backend/issues"
+    },
+    "homepage": "https://github.com/bryndalski/zaliczenie-programowanie-backend#readme"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
