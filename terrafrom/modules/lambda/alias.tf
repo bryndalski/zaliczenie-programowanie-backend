@@ -1,28 +1,28 @@
-data "archive_file" "example" {
+data "archive_file" "lambda_archive_file" {
   type        = "zip"
   source_file = "${path.module}/lambda/index.js"
   output_path = "${path.module}/lambda/function.zip"
 }
 
 # Lambda function
-resource "aws_lambda_function" "example" {
-  filename         = data.archive_file.example.output_path
-  function_name    = "example_lambda_function"
-  role             = aws_iam_role.example.arn
+resource "aws_lambda_function" "lambda" {
+  filename         = data.archive_file.lambda_archive_file.output_path
+  function_name    = "${var.variant}-${var.project}-${var.lambda_name}"
+  role             = aws_iam_role.lambda_role.arn
   handler          = "index.handler"
-  source_code_hash = data.archive_file.example.output_base64sha256
+  source_code_hash = data.archive_file.lambda_archive_file.output_base64sha256
 
-  runtime = "nodejs20.x"
+  runtime = var.runtime
 
   environment {
-    variables = {
-      ENVIRONMENT = "production"
-      LOG_LEVEL   = "info"
-    }
+
   }
 
-  tags = {
-    Environment = "production"
-    Application = "example"
-  }
+  tags = var.tags
+}
+
+resource "aws_lambda_alias" "alias" {
+  function_name    = aws_lambda_function.lambda.function_name
+  function_version = aws_lambda_function.lambda.version
+  name             = "${var.variant}-${var.project}-${var.lambda_name}-alias"
 }
