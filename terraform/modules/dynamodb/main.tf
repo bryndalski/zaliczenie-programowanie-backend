@@ -9,7 +9,6 @@ resource "aws_dynamodb_table" "notes_table" {
     type = "S"
   }
 
-
   attribute {
     name = "userId"
     type = "S"
@@ -18,7 +17,7 @@ resource "aws_dynamodb_table" "notes_table" {
   global_secondary_index {
     hash_key        = "userId"
     name            = "userIndex"
-    projection_type = "INCLUDE"
+    projection_type = "ALL"
   }
 
   tags = var.tags
