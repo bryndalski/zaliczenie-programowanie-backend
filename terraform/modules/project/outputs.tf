@@ -1,6 +1,6 @@
 output "api_gateway_url" {
   description = "API Gateway invoke URL"
-  value       = module.api_gateway.api_gateway_invoke_url
+  value       = aws_api_gateway_stage.api_stage.invoke_url
 }
 
 output "api_gateway_id" {
@@ -44,9 +44,29 @@ output "endpoints" {
     for key, endpoint in module.endpoints : key => {
       lambda_name  = endpoint.lambda_function_name
       lambda_arn   = endpoint.lambda_function_arn
-      path         = endpoint.api_resource_path
+      resource_id  = endpoint.api_resource_id
       http_method  = endpoint.http_method
     }
   }
+}
+
+output "telemetry_layer_arn" {
+  description = "ARN of the telemetry Lambda layer"
+  value       = module.telemetry_layer.layer_arn
+}
+
+output "dynamodb_layer_arn" {
+  description = "ARN of the DynamoDB Lambda layer"
+  value       = module.dynamodb_layer.layer_arn
+}
+
+output "api_gateway_stage_name" {
+  description = "Name of the API Gateway stage"
+  value       = aws_api_gateway_stage.api_stage.stage_name
+}
+
+output "api_gateway_deployment_id" {
+  description = "ID of the API Gateway deployment"
+  value       = aws_api_gateway_deployment.api_deployment.id
 }
 

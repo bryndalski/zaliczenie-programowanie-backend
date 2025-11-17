@@ -1,112 +1,65 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { randomUUID } from 'crypto';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import middy from '@middy/core';
+import httpJsonBodyParser from '@middy/http-json-body-parser';
+import httpCors from '@middy/http-cors';
 
-const client = new DynamoDBClient({});
-const dynamoDB = DynamoDBDocumentClient.from(client);
+// Import from Lambda layers
+import {
+  createDynamoDBHelper,
+  loggerMiddleware,
+  metricsMiddleware,
+  exceptionHandlerMiddleware,
+  authMiddleware,
+  createHttpError,
+  createdResponse,
+  MiddyContext,
+} from '/opt/nodejs';
+
+// Import shared entities
+import { NoteEntity, CreateNoteInput } from '../../entities';
 
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
+const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
-interface NoteInput {
-  title: string;
-  content: string;
-}
-
-export const handler = async (
-  event: APIGatewayProxyEvent
+const baseHandler = async (
+  event: APIGatewayProxyEvent,
+  context: Context & MiddyContext
 ): Promise<APIGatewayProxyResult> => {
-  console.log('Event:', JSON.stringify(event, null, 2));
+  const { logger, metrics, userId } = context;
+
+  logger.info('Processing add note request');
+
+  // After httpJsonBodyParser middleware, body is parsed
+  const input = event.body as unknown as CreateNoteInput;
 
   try {
-    // Get userId from Cognito claims
-    const userId = event.requestContext.authorizer?.claims?.sub;
+    const noteEntity = NoteEntity.create(userId, input);
 
-    if (!userId) {
-      return {
-        statusCode: 401,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({ message: 'Unauthorized' }),
-      };
-    }
+    await dynamoDB.put(noteEntity.toJSON());
 
-    // Parse request body
-    if (!event.body) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({ message: 'Missing request body' }),
-      };
-    }
+    logger.info('Note created successfully', { noteId: noteEntity.noteId });
+    metrics.addMetric({ name: 'NotesCreated', value: 1 });
 
-    const input: NoteInput = JSON.parse(event.body);
-
-    // Validate input
-    if (!input.title || !input.content) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          message: 'Missing required fields: title and content'
-        }),
-      };
-    }
-
-    // Create note
-    const noteId = randomUUID();
-    const timestamp = new Date().toISOString();
-
-    const note = {
-      userId,
-      noteId,
-      title: input.title,
-      content: input.content,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-
-    // Save to DynamoDB
-    await dynamoDB.send(
-      new PutCommand({
-        TableName: NOTES_TABLE_NAME,
-        Item: note,
-      })
-    );
-
-    return {
-      statusCode: 201,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        message: 'Note created successfully',
-        note,
-      }),
-    };
+    return createdResponse({
+      note: noteEntity.toJSON(),
+    });
   } catch (error) {
-    console.error('Error:', error);
-
-    return {
-      statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      }),
-    };
+    if (error instanceof Error) {
+      logger.warn('Validation error', { error: error.message });
+      throw createHttpError.badRequest(error.message);
+    }
+    throw error;
   }
 };
+
+export const handler = middy(baseHandler)
+  .use(loggerMiddleware())
+  .use(metricsMiddleware())
+  .use(authMiddleware())
+  .use(httpJsonBodyParser())
+  .use(httpCors())
+  .use(exceptionHandlerMiddleware());
+
+
+
 
