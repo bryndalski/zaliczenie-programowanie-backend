@@ -3,6 +3,7 @@ resource "aws_api_gateway_method" "api_gateway_method" {
   resource_id   = var.root_path_id
   http_method   = var.path_method
   authorization = "NONE"
+
 }
 
 resource "aws_api_gateway_integration" "api_gateway_integration" {

@@ -1,5 +1,5 @@
 resource "aws_api_gateway_rest_api" "main_api" {
-  name                       = "${var.project}-${var.variant}-api-gateway"
+  name = "${var.project}-${var.variant}-api-gateway"
   tags = var.tags
 }
 
@@ -9,4 +9,3 @@ resource "aws_api_gateway_resource" "api_root_path" {
   path_part   = "api"
 }
 
-r

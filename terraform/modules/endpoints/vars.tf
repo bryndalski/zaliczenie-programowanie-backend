@@ -31,20 +31,20 @@ variable "path_method" {
 }
 
 variable "lambda_name" {
-    description = "Name of the Lambda function"
-    type        = string
+  description = "Name of the Lambda function"
+  type        = string
 }
 
 variable "lambda_envs" {
   description = "Environment variables for the Lambda function"
-  type        = map(string)
-  default     = {}
+  type = map(string)
+  default = {}
 }
 
 variable "iam_lambda_permissions" {
   description = "Additional IAM permissions for the Lambda function"
-  type        = list(string)
-  default     = []
+  type = list(string)
+  default = []
 }
 
 variable "entry" {
@@ -57,4 +57,10 @@ variable "runtime" {
   description = "Runtime environment for the Lambda function"
   type        = string
   default     = "nodejs20.x"
+}
+
+variable "path_name" {
+  description = "The path name for the API Gateway resource"
+  type        = string
+  default     = ""
 }
