@@ -21,7 +21,7 @@ module "endpoints" {
 
     get_notes = {
       resource_id = aws_api_gateway_resource.get_notes.id
-      path_method = "POST"
+      path_method = "GET"
       lambda_name = "get_notes"
       lambda_envs = {
         NOTES_TABLE_NAME = module.dynamo_db.table_name
@@ -37,7 +37,7 @@ module "endpoints" {
 
     update_note = {
       resource_id = aws_api_gateway_resource.update_note.id
-      path_method = "POST"
+      path_method = "PUT"
       lambda_name = "update_note"
       lambda_envs = {
         NOTES_TABLE_NAME = module.dynamo_db.table_name
@@ -57,7 +57,7 @@ module "endpoints" {
 
     delete_note = {
       resource_id = aws_api_gateway_resource.delete_note.id
-      path_method = "POST"
+      path_method = "DELETE"
       lambda_name = "delete_note"
       lambda_envs = {
         NOTES_TABLE_NAME = module.dynamo_db.table_name
