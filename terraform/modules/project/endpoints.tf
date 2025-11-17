@@ -3,7 +3,7 @@ module "endpoints" {
 
   for_each = {
     add_note = {
-      path        = "notes"
+      path        = "add_notes"
       path_method = "POST"
       lambda_name = "add_note"
       lambda_envs = {
