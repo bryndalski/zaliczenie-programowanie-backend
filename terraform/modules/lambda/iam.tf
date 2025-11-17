@@ -1,72 +1,57 @@
+data "aws_iam_policy_document" "lambda_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
 resource "aws_iam_role" "lambda_role" {
-  name = "${var.variant}-${var.project}-${var.lambda_name}-role}"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "lambda.amazonaws.com"
-      }
-    }]
-  })
-
+  name               = "${var.variant}-${var.project}-${var.lambda_name}-role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+  tags               = var.tags
 }
 
-resource "aws_iam_policy" "lambda_policy" {
-  name        = "${var.variant}-${var.project}-${var.lambda_name}-"
-  description = "IAM policy for ${var.lambda_name} Lambda function"
+resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_xray" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+}
+
+# Custom policy for additional permissions
+resource "aws_iam_policy" "lambda_custom_policy" {
+  count = length(var.iam_lambda_permissions) > 0 ? 1 : 0
+
+  name        = "${var.variant}-${var.project}-${var.lambda_name}-custom-policy"
+  description = "Custom policy for ${var.lambda_name} Lambda function"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Action   = var.iam_lambda_permissions
+      for permission in var.iam_lambda_permissions : {
         Effect   = "Allow"
-        Resource = "*"
+        Action   = permission.action
+        Resource = permission.resource
       }
     ]
   })
+
+  tags = var.tags
 }
 
-resource "aws_iam_policy" "lambda_cloudwatch_policy" {
-  name        = "${var.variant}-${var.project}-${var.lambda_name}-cloudwatch-policy"
-  description = "CloudWatch, X-Ray and tracing permissions for ${var.lambda_name} Lambda function"
+resource "aws_iam_role_policy_attachment" "lambda_custom_policy" {
+  count = length(var.iam_lambda_permissions) > 0 ? 1 : 0
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          # CloudWatch Logs
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-
-          # X-Ray
-          "xray:PutTraceSegments",
-          "xray:PutTelemetryRecords",
-          "xray:GetSamplingRules",
-          "xray:GetSamplingTargets",
-          "xray:GetSamplingStatisticSummaries",
-
-          # CloudWatch Metrics
-          "cloudwatch:PutMetricData"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_cloudwatch_attachment" {
   role       = aws_iam_role.lambda_role.name
-  policy_arn = aws_iam_policy.lambda_cloudwatch_policy.arn
+  policy_arn = aws_iam_policy.lambda_custom_policy[0].arn
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
-  role       = aws_iam_role.lambda_role.name
-  policy_arn = aws_iam_policy.lambda_policy.arn
-}

@@ -1,9 +1,25 @@
 output "table_name" {
-  description = "DynamoDB table name"
-  value       = aws_dynamodb_table.notes_table.name
+  description = "Name of the DynamoDB table"
+  value       = aws_dynamodb_table.table.name
 }
 
 output "table_arn" {
-  description = "DynamoDB table ARN"
-  value       = aws_dynamodb_table.notes_table.arn
+  description = "ARN of the DynamoDB table"
+  value       = aws_dynamodb_table.table.arn
 }
+
+output "table_id" {
+  description = "ID of the DynamoDB table"
+  value       = aws_dynamodb_table.table.id
+}
+
+output "table_stream_arn" {
+  description = "ARN of the DynamoDB table stream"
+  value       = aws_dynamodb_table.table.stream_arn
+}
+
+output "table_stream_label" {
+  description = "Label of the DynamoDB table stream"
+  value       = aws_dynamodb_table.table.stream_label
+}
+

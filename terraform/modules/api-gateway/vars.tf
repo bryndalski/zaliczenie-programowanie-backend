@@ -1,10 +1,10 @@
 variable "project" {
-  description = "Project name for tagging"
+  description = "Project name"
   type        = string
 }
 
 variable "variant" {
-  description = "Variant name for tagging (e.g., dev, prod)"
+  description = "Environment variant (dev, staging, prod)"
   type        = string
 }
 
@@ -13,3 +13,10 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "cognito_user_pool_arn" {
+  description = "ARN of the Cognito User Pool for authorization"
+  type        = string
+  default     = ""
+}
+

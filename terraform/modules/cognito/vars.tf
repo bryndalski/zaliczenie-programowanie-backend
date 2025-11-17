@@ -1,10 +1,10 @@
 variable "project" {
-  description = "Project name for tagging"
+  description = "Project name"
   type        = string
 }
 
 variable "variant" {
-  description = "Variant name for tagging (e.g., dev, prod)"
+  description = "Environment variant (dev, staging, prod)"
   type        = string
 }
 
@@ -14,8 +14,21 @@ variable "tags" {
   default     = {}
 }
 
-variable "clients" {
-  description = "Map of Cognito user pool clients. Key is an arbitrary name. Each value can include: name, generate_secret (bool), explicit_auth_flows (list), allowed_oauth_flows (list), allowed_oauth_scopes (list), callback_urls (list), logout_urls (list), supported_identity_providers (list), allowed_oauth_flows_user_pool_client (bool), prevent_user_existence_errors (string)"
-  type = map(any)
-  default = {}
+variable "password_minimum_length" {
+  description = "Minimum length for user passwords"
+  type        = number
+  default     = 8
 }
+
+variable "client_callback_urls" {
+  description = "List of allowed callback URLs for the app client"
+  type        = list(string)
+  default     = ["http://localhost:3000/callback"]
+}
+
+variable "client_logout_urls" {
+  description = "List of allowed logout URLs for the app client"
+  type        = list(string)
+  default     = ["http://localhost:3000"]
+}
+

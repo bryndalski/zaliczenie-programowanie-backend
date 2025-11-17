@@ -1,19 +1,11 @@
-variable "lambda_envs" {
-  description = "Environment variables for the Lambda function"
-  type = map(string)
-  default = {}
-}
-
-variable "iam_lambda_permissions" {
-  description = "Additional IAM permissions for the Lambda function"
-  type = list(string)
-  default = []
-}
-
-variable "entry" {
-  description = "Entry point for the Lambda function"
+variable "project" {
+  description = "Project name"
   type        = string
-  default     = "src/lambda.handler"
+}
+
+variable "variant" {
+  description = "Environment variant (dev, staging, prod)"
+  type        = string
 }
 
 variable "lambda_name" {
@@ -21,25 +13,59 @@ variable "lambda_name" {
   type        = string
 }
 
-variable "project" {
-  description = "Project name for tagging"
+variable "lambda_envs" {
+  description = "Environment variables for the Lambda function"
+  type        = map(string)
+  default     = {}
+}
+
+variable "entry" {
+  description = "Path to the Lambda function entry point"
   type        = string
 }
 
-variable "variant" {
-  description = "Variant name for tagging (e.g., dev, prod)"
-  type        = string
+variable "iam_lambda_permissions" {
+  description = "List of IAM permissions for the Lambda function"
+  type = list(object({
+    action   = string
+    resource = string
+  }))
+  default = []
+}
+
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+  default     = {}
 }
 
 variable "runtime" {
-  description = "Runtime environment for the Lambda function"
+  description = "Lambda runtime"
   type        = string
   default     = "nodejs20.x"
 }
 
-
-variable "tags" {
-  description = "Tags to apply to resources"
-  type = map(string)
-  default = {}
+variable "handler" {
+  description = "Lambda handler"
+  type        = string
+  default     = "index.handler"
 }
+
+variable "timeout" {
+  description = "Lambda timeout in seconds"
+  type        = number
+  default     = 30
+}
+
+variable "memory_size" {
+  description = "Lambda memory size in MB"
+  type        = number
+  default     = 128
+}
+
+variable "layers" {
+  description = "List of Lambda Layer ARNs"
+  type        = list(string)
+  default     = []
+}
+

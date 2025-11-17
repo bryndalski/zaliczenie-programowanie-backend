@@ -1,9 +1,25 @@
 output "lambda_function_arn" {
-  value       = lambda
-  description = "The ARN of the Lambda function"
+  description = "ARN of the Lambda function"
+  value       = aws_lambda_function.lambda_function.arn
+}
+
+output "lambda_function_name" {
+  description = "Name of the Lambda function"
+  value       = aws_lambda_function.lambda_function.function_name
 }
 
 output "lambda_invoke_arn" {
-  value       = aws_lambda_function.lambda.invoke_arn
-  description = "The invoke ARN of the Lambda function"
+  description = "Invoke ARN of the Lambda function"
+  value       = aws_lambda_function.lambda_function.invoke_arn
 }
+
+output "lambda_role_arn" {
+  description = "ARN of the Lambda IAM role"
+  value       = aws_iam_role.lambda_role.arn
+}
+
+output "lambda_role_name" {
+  description = "Name of the Lambda IAM role"
+  value       = aws_iam_role.lambda_role.name
+}
+
