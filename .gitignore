@@ -7,3 +7,10 @@ terraform/.terraform
 .idea
 .qodo
 .terraform.lock.hcl
+node_modules
+.qodo
+dist
+build
+.env
+.env.local
+.env.development.local

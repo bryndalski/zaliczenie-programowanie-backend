@@ -3,7 +3,6 @@ import middy from '@middy/core';
 import httpJsonBodyParser from '@middy/http-json-body-parser';
 import httpCors from '@middy/http-cors';
 
-// Import from Lambda layers
 import {
   createDynamoDBHelper,
   loggerMiddleware,
@@ -13,6 +12,8 @@ import {
   successResponse,
   MiddyContext,
 } from '/opt/nodejs';
+
+import { NoteEntity, Note } from '../../entities';
 
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
 const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
@@ -25,11 +26,12 @@ const baseHandler = async (
 
   logger.info('Processing get notes request');
 
-  // Query notes for the user
-  const notes = await dynamoDB.query(
+  const notesData = await dynamoDB.query(
     'userId = :userId',
     { ':userId': userId }
   );
+
+  const notes = notesData.map((data) => NoteEntity.fromData(data as Note).toJSON());
 
   logger.info('Notes retrieved successfully', { count: notes.length });
   metrics.addMetric({ name: 'NotesRetrieved', value: notes.length });
@@ -47,4 +49,6 @@ export const handler = middy(baseHandler)
   .use(httpJsonBodyParser())
   .use(httpCors())
   .use(exceptionHandlerMiddleware());
+
+
 

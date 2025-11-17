@@ -15,24 +15,20 @@ import {
   MiddyContext,
 } from '/opt/nodejs';
 
+// Import shared entities
+import { NoteEntity, Note } from '../../entities';
+
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
 const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
-interface DeleteNoteEvent extends APIGatewayProxyEvent {
-  pathParameters: {
-    noteId: string;
-  };
-}
-
 const baseHandler = async (
-  event: DeleteNoteEvent,
+  event: APIGatewayProxyEvent,
   context: Context & MiddyContext
 ): Promise<APIGatewayProxyResult> => {
   const { logger, metrics, userId } = context;
 
   logger.info('Processing delete note request');
 
-  // Get noteId from path parameters or query parameters
   const noteId = event.pathParameters?.noteId || event.queryStringParameters?.noteId;
 
   if (!noteId) {
@@ -40,22 +36,25 @@ const baseHandler = async (
     throw createHttpError.badRequest('Missing noteId parameter');
   }
 
-  // Verify the note exists and belongs to the user
-  const existingNote = await dynamoDB.get({
+  const existingNoteData = await dynamoDB.get({
     userId,
     noteId,
   });
 
-  if (!existingNote) {
+  if (!existingNoteData) {
     logger.warn('Note not found', { noteId });
     throw createHttpError.notFound('Note not found');
   }
 
+  const noteEntity = NoteEntity.fromData(existingNoteData as Note);
+
+  if (!noteEntity.belongsToUser(userId)) {
+    logger.warn('Unauthorized delete attempt', { noteId, userId });
+    throw createHttpError.forbidden('You do not have permission to delete this note');
+  }
+
   // Delete the note
-  await dynamoDB.delete({
-    userId,
-    noteId,
-  });
+  await dynamoDB.delete(noteEntity.getPrimaryKey());
 
   logger.info('Note deleted successfully', { noteId });
   metrics.addMetric({ name: 'NotesDeleted', value: 1 });
@@ -70,5 +69,7 @@ export const handler = middy(baseHandler)
   .use(httpJsonBodyParser())
   .use(httpCors())
   .use(exceptionHandlerMiddleware());
+
+
 
 

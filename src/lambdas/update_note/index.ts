@@ -1,130 +1,87 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import middy from '@middy/core';
+import httpJsonBodyParser from '@middy/http-json-body-parser';
+import httpCors from '@middy/http-cors';
 
-// Import from Lambda layers
-import { createLogger, createMetrics } from '/opt/nodejs';
-import { createDynamoDBHelper } from '/opt/nodejs';
 import {
+  createDynamoDBHelper,
+  loggerMiddleware,
+  metricsMiddleware,
+  exceptionHandlerMiddleware,
+  authMiddleware,
+  createHttpError,
   successResponse,
-  errorResponse,
-  unauthorizedResponse,
-  badRequestResponse,
-  notFoundResponse,
+  MiddyContext,
 } from '/opt/nodejs';
 
+import { NoteEntity, Note, UpdateNoteInput } from '../../entities';
+
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
-const logger = createLogger();
-const metrics = createMetrics();
 const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
-interface NoteUpdateInput {
-  title?: string;
-  content?: string;
-}
-
-export const handler = async (
-  event: APIGatewayProxyEvent
+const baseHandler = async (
+  event: APIGatewayProxyEvent,
+  context: Context & MiddyContext
 ): Promise<APIGatewayProxyResult> => {
-  const startTime = Date.now();
+  const { logger, metrics, userId } = context;
+
+  logger.info('Processing update note request');
+
+  const noteId = event.pathParameters?.noteId || event.queryStringParameters?.noteId;
+
+  if (!noteId) {
+    logger.warn('Missing noteId parameter');
+    throw createHttpError.badRequest('Missing noteId parameter');
+  }
+
+  // After httpJsonBodyParser middleware, body is parsed
+  const input = event.body as unknown as UpdateNoteInput;
+
+  const existingNoteData = await dynamoDB.get({
+    userId,
+    noteId,
+  });
+
+  if (!existingNoteData) {
+    logger.warn('Note not found', { noteId });
+    throw createHttpError.notFound('Note not found');
+  }
 
   try {
-    logger.info('Processing update note request', {
-      requestId: event.requestContext.requestId,
-    });
+    const noteEntity = NoteEntity.fromData(existingNoteData as Note);
 
-    // Get userId from Cognito claims
-    const userId = event.requestContext.authorizer?.claims?.sub;
-
-    if (!userId) {
-      logger.warn('Unauthorized access attempt');
-      metrics.addMetric({ name: 'UnauthorizedAttempts', value: 1 });
-      return unauthorizedResponse();
+    if (!noteEntity.belongsToUser(userId)) {
+      logger.warn('Unauthorized update attempt', { noteId, userId });
+      throw createHttpError.forbidden('You do not have permission to update this note');
     }
 
-    logger.setContext({ userId });
+    noteEntity.update(input);
 
-    // Get noteId from path parameters
-    const noteId = event.pathParameters?.noteId;
-
-    if (!noteId) {
-      logger.warn('Missing noteId parameter');
-      return badRequestResponse('Missing noteId parameter');
-    }
-
-    // Parse request body
-    if (!event.body) {
-      logger.warn('Missing request body');
-      return badRequestResponse('Missing request body');
-    }
-
-    const input: NoteUpdateInput = JSON.parse(event.body);
-
-    // Validate at least one field is being updated
-    if (!input.title && !input.content) {
-      logger.warn('No fields to update');
-      return badRequestResponse('At least one field (title or content) must be provided');
-    }
-
-    // Verify the note exists and belongs to the user
-    const existingNote = await dynamoDB.get({
-      userId,
-      noteId,
-    });
-
-    if (!existingNote) {
-      logger.warn('Note not found', { noteId });
-      return notFoundResponse('Note');
-    }
-
-    // Build update expression
-    const updateParts: string[] = [];
-    const expressionAttributeValues: Record<string, any> = {
-      ':updatedAt': new Date().toISOString(),
-    };
-    const expressionAttributeNames: Record<string, string> = {};
-
-    if (input.title) {
-      updateParts.push('#title = :title');
-      expressionAttributeValues[':title'] = input.title;
-      expressionAttributeNames['#title'] = 'title';
-    }
-
-    if (input.content) {
-      updateParts.push('#content = :content');
-      expressionAttributeValues[':content'] = input.content;
-      expressionAttributeNames['#content'] = 'content';
-    }
-
-    updateParts.push('updatedAt = :updatedAt');
-
-    const updateExpression = `SET ${updateParts.join(', ')}`;
-
-    // Update the note
-    const updatedNote = await dynamoDB.update(
-      { userId, noteId },
-      updateExpression,
-      expressionAttributeValues,
-      Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : undefined
-    );
+    await dynamoDB.put(noteEntity.toJSON());
 
     logger.info('Note updated successfully', { noteId });
     metrics.addMetric({ name: 'NotesUpdated', value: 1 });
-    metrics.recordDuration('UpdateNoteDuration', startTime);
 
     return successResponse({
       message: 'Note updated successfully',
-      note: updatedNote,
+      note: noteEntity.toJSON(),
     });
-  } catch (error) {
-    logger.error('Error updating note', error);
-    metrics.addMetric({ name: 'UpdateNoteErrors', value: 1 });
 
-    return errorResponse(
-      'Internal server error',
-      500,
-      error instanceof Error ? error.message : 'Unknown error'
-    );
-  } finally {
-    metrics.flush();
+  } catch (error) {
+    if (error instanceof Error && !error.hasOwnProperty('statusCode')) {
+      logger.warn('Validation error', { error: error.message });
+      throw createHttpError.badRequest(error.message);
+    }
+    throw error;
   }
 };
+
+export const handler = middy(baseHandler)
+  .use(loggerMiddleware())
+  .use(metricsMiddleware())
+  .use(authMiddleware())
+  .use(httpJsonBodyParser())
+  .use(httpCors())
+  .use(exceptionHandlerMiddleware());
+
 

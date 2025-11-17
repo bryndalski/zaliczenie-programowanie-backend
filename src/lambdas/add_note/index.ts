@@ -2,7 +2,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda
 import middy from '@middy/core';
 import httpJsonBodyParser from '@middy/http-json-body-parser';
 import httpCors from '@middy/http-cors';
-import { randomUUID } from 'crypto';
 
 // Import from Lambda layers
 import {
@@ -16,57 +15,41 @@ import {
   MiddyContext,
 } from '/opt/nodejs';
 
+// Import shared entities
+import { NoteEntity, CreateNoteInput } from '../../entities';
+
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
 const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
-interface NoteInput {
-  title: string;
-  content: string;
-}
-
-interface AddNoteEvent extends APIGatewayProxyEvent {
-  body: NoteInput;
-}
-
 const baseHandler = async (
-  event: AddNoteEvent,
+  event: APIGatewayProxyEvent,
   context: Context & MiddyContext
 ): Promise<APIGatewayProxyResult> => {
   const { logger, metrics, userId } = context;
 
   logger.info('Processing add note request');
 
-  const input = event.body;
+  // After httpJsonBodyParser middleware, body is parsed
+  const input = event.body as unknown as CreateNoteInput;
 
-  // Validate input
-  if (!input || !input.title || !input.content) {
-    logger.warn('Invalid input', { input });
-    throw createHttpError.badRequest('Missing required fields: title and content');
+  try {
+    const noteEntity = NoteEntity.create(userId, input);
+
+    await dynamoDB.put(noteEntity.toJSON());
+
+    logger.info('Note created successfully', { noteId: noteEntity.noteId });
+    metrics.addMetric({ name: 'NotesCreated', value: 1 });
+
+    return createdResponse({
+      note: noteEntity.toJSON(),
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      logger.warn('Validation error', { error: error.message });
+      throw createHttpError.badRequest(error.message);
+    }
+    throw error;
   }
-
-  // Create note
-  const noteId = randomUUID();
-  const timestamp = new Date().toISOString();
-
-  const note = {
-    userId,
-    noteId,
-    title: input.title,
-    content: input.content,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  };
-
-  // Save to DynamoDB
-  await dynamoDB.put(note);
-
-  logger.info('Note created successfully', { noteId });
-  metrics.addMetric({ name: 'NotesCreated', value: 1 });
-
-  return createdResponse({
-    message: 'Note created successfully',
-    note,
-  });
 };
 
 export const handler = middy(baseHandler)
@@ -76,5 +59,7 @@ export const handler = middy(baseHandler)
   .use(httpJsonBodyParser())
   .use(httpCors())
   .use(exceptionHandlerMiddleware());
+
+
 
 
