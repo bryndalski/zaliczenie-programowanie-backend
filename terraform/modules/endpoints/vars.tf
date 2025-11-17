@@ -13,8 +13,8 @@ variable "api_gateway_id" {
   type        = string
 }
 
-variable "root_path_id" {
-  description = "Root resource ID for the API Gateway path"
+variable "resource_id" {
+  description = "ID of the API Gateway resource (path) to attach this endpoint to"
   type        = string
 }
 
@@ -48,11 +48,6 @@ variable "path_method" {
   type        = string
 }
 
-variable "path" {
-  description = "API path segment (e.g., 'notes', 'users')"
-  type        = string
-  default     = ""
-}
 
 variable "authorizer_id" {
   description = "ID of the API Gateway authorizer (optional)"

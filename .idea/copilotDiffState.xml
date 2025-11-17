@@ -12,6 +12,15 @@
             </PendingDiffInfo>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/terraform/modules/project/api_deployment.tf">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/terraform/modules/project/api_deployment.tf" />
+              <option name="originalContent" value="# API Gateway Deployment - must be created after all endpoints&#10;resource &quot;aws_api_gateway_deployment&quot; &quot;api_deployment&quot; {&#10;  rest_api_id = module.api_gateway.api_gateway_id&#10;&#10;  triggers = {&#10;    # Redeploy when endpoints change&#10;    redeployment = sha1(jsonencode([&#10;      for endpoint_key, endpoint in module.endpoints : {&#10;        path        = endpoint.api_resource_path&#10;        method      = endpoint.http_method&#10;        lambda_arn  = endpoint.lambda_function_arn&#10;      }&#10;    ]))&#10;  }&#10;&#10;  lifecycle {&#10;    create_before_destroy = true&#10;  }&#10;&#10;  # Ensure all endpoints are created before deployment&#10;  depends_on = [&#10;    module.endpoints&#10;  ]&#10;}&#10;&#10;# API Gateway Stage&#10;resource &quot;aws_api_gateway_stage&quot; &quot;api_stage&quot; {&#10;  deployment_id = aws_api_gateway_deployment.api_deployment.id&#10;  rest_api_id   = module.api_gateway.api_gateway_id&#10;  stage_name    = var.variant&#10;&#10;  xray_tracing_enabled = true&#10;&#10;  tags = merge(var.tags, {&#10;    Module = &quot;api-gateway-stage&quot;&#10;  })&#10;}&#10;&#10;" />
+              <option name="updatedContent" value="# API Gateway Deployment - must be created after all endpoints&#10;resource &quot;aws_api_gateway_deployment&quot; &quot;api_deployment&quot; {&#10;  rest_api_id = module.api_gateway.api_gateway_id&#10;&#10;  triggers = {&#10;    # Redeploy when endpoints change&#10;    redeployment = sha1(jsonencode([&#10;      for endpoint_key, endpoint in module.endpoints : {&#10;        resource_id = endpoint.api_resource_id&#10;        method      = endpoint.http_method&#10;        lambda_arn  = endpoint.lambda_function_arn&#10;      }&#10;    ]))&#10;  }&#10;&#10;  lifecycle {&#10;    create_before_destroy = true&#10;  }&#10;&#10;  # Ensure all endpoints are created before deployment&#10;  depends_on = [&#10;    module.endpoints&#10;  ]&#10;}&#10;&#10;# API Gateway Stage&#10;resource &quot;aws_api_gateway_stage&quot; &quot;api_stage&quot; {&#10;  deployment_id = aws_api_gateway_deployment.api_deployment.id&#10;  rest_api_id   = module.api_gateway.api_gateway_id&#10;  stage_name    = var.variant&#10;&#10;  xray_tracing_enabled = true&#10;&#10;  tags = merge(var.tags, {&#10;    Module = &quot;api-gateway-stage&quot;&#10;  })&#10;}&#10;&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

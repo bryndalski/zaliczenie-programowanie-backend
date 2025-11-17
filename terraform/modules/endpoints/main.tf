@@ -1,21 +1,7 @@
-# Create API Gateway resource (path)
-resource "aws_api_gateway_resource" "endpoint_resource" {
-  count = var.path != "" ? 1 : 0
-
-  rest_api_id = var.api_gateway_id
-  parent_id   = var.root_path_id
-  path_part   = var.path
-}
-
-# Determine which resource ID to use (custom path or root)
-locals {
-  resource_id = var.path != "" ? aws_api_gateway_resource.endpoint_resource[0].id : var.root_path_id
-}
-
 # Create HTTP method
 resource "aws_api_gateway_method" "endpoint_method" {
   rest_api_id   = var.api_gateway_id
-  resource_id   = local.resource_id
+  resource_id   = var.resource_id
   http_method   = var.path_method
   authorization = var.authorizer_id != "" ? "COGNITO_USER_POOLS" : "NONE"
   authorizer_id = var.authorizer_id != "" ? var.authorizer_id : null
@@ -24,7 +10,7 @@ resource "aws_api_gateway_method" "endpoint_method" {
 # Integrate Lambda with API Gateway
 resource "aws_api_gateway_integration" "lambda_integration" {
   rest_api_id             = var.api_gateway_id
-  resource_id             = local.resource_id
+  resource_id             = var.resource_id
   http_method             = aws_api_gateway_method.endpoint_method.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
@@ -34,7 +20,7 @@ resource "aws_api_gateway_integration" "lambda_integration" {
 # Method response
 resource "aws_api_gateway_method_response" "response_200" {
   rest_api_id = var.api_gateway_id
-  resource_id = local.resource_id
+  resource_id = var.resource_id
   http_method = aws_api_gateway_method.endpoint_method.http_method
   status_code = "200"
 
@@ -50,7 +36,7 @@ resource "aws_api_gateway_method_response" "response_200" {
 # Integration response
 resource "aws_api_gateway_integration_response" "lambda_integration_response" {
   rest_api_id = var.api_gateway_id
-  resource_id = local.resource_id
+  resource_id = var.resource_id
   http_method = aws_api_gateway_method.endpoint_method.http_method
   status_code = aws_api_gateway_method_response.response_200.status_code
 
@@ -64,14 +50,14 @@ resource "aws_api_gateway_integration_response" "lambda_integration_response" {
 # CORS - OPTIONS method
 resource "aws_api_gateway_method" "options_method" {
   rest_api_id   = var.api_gateway_id
-  resource_id   = local.resource_id
+  resource_id   = var.resource_id
   http_method   = "OPTIONS"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "options_integration" {
   rest_api_id = var.api_gateway_id
-  resource_id = local.resource_id
+  resource_id = var.resource_id
   http_method = aws_api_gateway_method.options_method.http_method
   type        = "MOCK"
 
@@ -82,7 +68,7 @@ resource "aws_api_gateway_integration" "options_integration" {
 
 resource "aws_api_gateway_method_response" "options_response" {
   rest_api_id = var.api_gateway_id
-  resource_id = local.resource_id
+  resource_id = var.resource_id
   http_method = aws_api_gateway_method.options_method.http_method
   status_code = "200"
 
@@ -99,7 +85,7 @@ resource "aws_api_gateway_method_response" "options_response" {
 
 resource "aws_api_gateway_integration_response" "options_integration_response" {
   rest_api_id = var.api_gateway_id
-  resource_id = local.resource_id
+  resource_id = var.resource_id
   http_method = aws_api_gateway_method.options_method.http_method
   status_code = aws_api_gateway_method_response.options_response.status_code
 

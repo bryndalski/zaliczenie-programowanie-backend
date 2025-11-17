@@ -10,32 +10,10 @@ resource "aws_api_gateway_rest_api" "api" {
 }
 
 resource "aws_api_gateway_authorizer" "cognito" {
-
   name          = "${var.variant}-${var.project}-cognito-authorizer"
   type          = "COGNITO_USER_POOLS"
   rest_api_id   = aws_api_gateway_rest_api.api.id
   provider_arns = [var.cognito_user_pool_arn]
 }
 
-resource "aws_api_gateway_deployment" "api_deployment" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
-
-  triggers = {
-    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.api.body))
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_api_gateway_stage" "api_stage" {
-  deployment_id = aws_api_gateway_deployment.api_deployment.id
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  stage_name    = var.variant
-
-  xray_tracing_enabled = true
-
-  tags = var.tags
-}
 

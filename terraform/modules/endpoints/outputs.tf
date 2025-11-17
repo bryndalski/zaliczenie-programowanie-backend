@@ -15,12 +15,7 @@ output "lambda_invoke_arn" {
 
 output "api_resource_id" {
   description = "ID of the API Gateway resource"
-  value       = local.resource_id
-}
-
-output "api_resource_path" {
-  description = "Path of the API Gateway resource"
-  value       = var.path != "" ? "/${var.path}" : "/"
+  value       = var.resource_id
 }
 
 output "http_method" {

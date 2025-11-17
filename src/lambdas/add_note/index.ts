@@ -1,12 +1,21 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { randomUUID } from 'crypto';
 
-const client = new DynamoDBClient({});
-const dynamoDB = DynamoDBDocumentClient.from(client);
+// Import from Lambda layers
+import { createLogger, createMetrics } from '/opt/nodejs';
+import { createDynamoDBHelper } from '/opt/nodejs';
+import {
+  successResponse,
+  errorResponse,
+  unauthorizedResponse,
+  badRequestResponse,
+  createdResponse,
+} from '/opt/nodejs';
 
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
+const logger = createLogger();
+const metrics = createMetrics();
+const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
 interface NoteInput {
   title: string;
@@ -16,49 +25,36 @@ interface NoteInput {
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log('Event:', JSON.stringify(event, null, 2));
+  const startTime = Date.now();
 
   try {
+    logger.info('Processing add note request', {
+      requestId: event.requestContext.requestId,
+    });
+
     // Get userId from Cognito claims
     const userId = event.requestContext.authorizer?.claims?.sub;
 
     if (!userId) {
-      return {
-        statusCode: 401,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({ message: 'Unauthorized' }),
-      };
+      logger.warn('Unauthorized access attempt');
+      metrics.addMetric({ name: 'UnauthorizedAttempts', value: 1 });
+      return unauthorizedResponse();
     }
+
+    logger.setContext({ userId });
 
     // Parse request body
     if (!event.body) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({ message: 'Missing request body' }),
-      };
+      logger.warn('Missing request body');
+      return badRequestResponse('Missing request body');
     }
 
     const input: NoteInput = JSON.parse(event.body);
 
     // Validate input
     if (!input.title || !input.content) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          message: 'Missing required fields: title and content'
-        }),
-      };
+      logger.warn('Invalid input', { input });
+      return badRequestResponse('Missing required fields: title and content');
     }
 
     // Create note
@@ -74,39 +70,28 @@ export const handler = async (
       updatedAt: timestamp,
     };
 
-    // Save to DynamoDB
-    await dynamoDB.send(
-      new PutCommand({
-        TableName: NOTES_TABLE_NAME,
-        Item: note,
-      })
-    );
+    // Save to DynamoDB using helper
+    await dynamoDB.put(note);
 
-    return {
-      statusCode: 201,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        message: 'Note created successfully',
-        note,
-      }),
-    };
+    logger.info('Note created successfully', { noteId });
+    metrics.addMetric({ name: 'NotesCreated', value: 1 });
+    metrics.recordDuration('CreateNoteDuration', startTime);
+
+    return createdResponse({
+      message: 'Note created successfully',
+      note,
+    });
   } catch (error) {
-    console.error('Error:', error);
+    logger.error('Error creating note', error);
+    metrics.addMetric({ name: 'CreateNoteErrors', value: 1 });
 
-    return {
-      statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      }),
-    };
+    return errorResponse(
+      'Internal server error',
+      500,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+  } finally {
+    metrics.flush();
   }
 };
 
