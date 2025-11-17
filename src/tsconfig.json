@@ -9,13 +9,14 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "declaration": true
-  },
-  "paths": {
-    "@telemetry": ["src/layers/telemetry/index.ts"]
+    "declaration": true,
+    "baseUrl": "./",
+    "typeRoots": ["./node_modules/@types", "./types"]
   },
   "include": [
-    "./layers/telemetry/**/*.ts"
+    "./lambdas/**/*.ts",
+    "./layers/**/*.ts",
+    "./types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",

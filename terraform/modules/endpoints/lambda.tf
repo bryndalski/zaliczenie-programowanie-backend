@@ -16,7 +16,6 @@ module "lambda" {
   iam_lambda_permissions = var.iam_lambda_permissions
 }
 
-# Get current AWS region and account ID
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
@@ -27,7 +26,6 @@ resource "aws_lambda_permission" "api_gateway" {
   function_name = module.lambda.lambda_function_name
   principal     = "apigateway.amazonaws.com"
 
-  # Construct execution ARN: arn:aws:execute-api:region:account-id:api-id/*/*/*
   source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:${var.api_gateway_id}/*/*"
 }
 

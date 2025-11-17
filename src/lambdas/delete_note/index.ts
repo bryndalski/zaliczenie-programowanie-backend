@@ -1,83 +1,74 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import middy from '@middy/core';
+import httpJsonBodyParser from '@middy/http-json-body-parser';
+import httpCors from '@middy/http-cors';
 
 // Import from Lambda layers
-import { createLogger, createMetrics } from '/opt/nodejs';
-import { createDynamoDBHelper } from '/opt/nodejs';
 import {
-  successResponse,
-  errorResponse,
-  unauthorizedResponse,
-  notFoundResponse,
+  createDynamoDBHelper,
+  loggerMiddleware,
+  metricsMiddleware,
+  exceptionHandlerMiddleware,
+  authMiddleware,
+  createHttpError,
   noContentResponse,
+  MiddyContext,
 } from '/opt/nodejs';
 
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
-const logger = createLogger();
-const metrics = createMetrics();
 const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
-export const handler = async (
-  event: APIGatewayProxyEvent
+interface DeleteNoteEvent extends APIGatewayProxyEvent {
+  pathParameters: {
+    noteId: string;
+  };
+}
+
+const baseHandler = async (
+  event: DeleteNoteEvent,
+  context: Context & MiddyContext
 ): Promise<APIGatewayProxyResult> => {
-  const startTime = Date.now();
+  const { logger, metrics, userId } = context;
 
-  try {
-    logger.info('Processing delete note request', {
-      requestId: event.requestContext.requestId,
-    });
+  logger.info('Processing delete note request');
 
-    // Get userId from Cognito claims
-    const userId = event.requestContext.authorizer?.claims?.sub;
+  // Get noteId from path parameters or query parameters
+  const noteId = event.pathParameters?.noteId || event.queryStringParameters?.noteId;
 
-    if (!userId) {
-      logger.warn('Unauthorized access attempt');
-      metrics.addMetric({ name: 'UnauthorizedAttempts', value: 1 });
-      return unauthorizedResponse();
-    }
-
-    logger.setContext({ userId });
-
-    // Get noteId from path parameters
-    const noteId = event.pathParameters?.noteId;
-
-    if (!noteId) {
-      logger.warn('Missing noteId parameter');
-      return errorResponse('Missing noteId parameter', 400);
-    }
-
-    // Verify the note exists and belongs to the user
-    const existingNote = await dynamoDB.get({
-      userId,
-      noteId,
-    });
-
-    if (!existingNote) {
-      logger.warn('Note not found', { noteId });
-      return notFoundResponse('Note');
-    }
-
-    // Delete the note
-    await dynamoDB.delete({
-      userId,
-      noteId,
-    });
-
-    logger.info('Note deleted successfully', { noteId });
-    metrics.addMetric({ name: 'NotesDeleted', value: 1 });
-    metrics.recordDuration('DeleteNoteDuration', startTime);
-
-    return noContentResponse();
-  } catch (error) {
-    logger.error('Error deleting note', error);
-    metrics.addMetric({ name: 'DeleteNoteErrors', value: 1 });
-
-    return errorResponse(
-      'Internal server error',
-      500,
-      error instanceof Error ? error.message : 'Unknown error'
-    );
-  } finally {
-    metrics.flush();
+  if (!noteId) {
+    logger.warn('Missing noteId parameter');
+    throw createHttpError.badRequest('Missing noteId parameter');
   }
+
+  // Verify the note exists and belongs to the user
+  const existingNote = await dynamoDB.get({
+    userId,
+    noteId,
+  });
+
+  if (!existingNote) {
+    logger.warn('Note not found', { noteId });
+    throw createHttpError.notFound('Note not found');
+  }
+
+  // Delete the note
+  await dynamoDB.delete({
+    userId,
+    noteId,
+  });
+
+  logger.info('Note deleted successfully', { noteId });
+  metrics.addMetric({ name: 'NotesDeleted', value: 1 });
+
+  return noContentResponse();
 };
+
+export const handler = middy(baseHandler)
+  .use(loggerMiddleware())
+  .use(metricsMiddleware())
+  .use(authMiddleware())
+  .use(httpJsonBodyParser())
+  .use(httpCors())
+  .use(exceptionHandlerMiddleware());
+
 

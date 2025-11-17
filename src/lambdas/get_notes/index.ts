@@ -1,65 +1,50 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import middy from '@middy/core';
+import httpJsonBodyParser from '@middy/http-json-body-parser';
+import httpCors from '@middy/http-cors';
 
 // Import from Lambda layers
-import { createLogger, createMetrics } from '/opt/nodejs';
-import { createDynamoDBHelper } from '/opt/nodejs';
 import {
+  createDynamoDBHelper,
+  loggerMiddleware,
+  metricsMiddleware,
+  exceptionHandlerMiddleware,
+  authMiddleware,
   successResponse,
-  errorResponse,
-  unauthorizedResponse,
+  MiddyContext,
 } from '/opt/nodejs';
 
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
-const logger = createLogger();
-const metrics = createMetrics();
 const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
-export const handler = async (
-  event: APIGatewayProxyEvent
+const baseHandler = async (
+  event: APIGatewayProxyEvent,
+  context: Context & MiddyContext
 ): Promise<APIGatewayProxyResult> => {
-  const startTime = Date.now();
+  const { logger, metrics, userId } = context;
 
-  try {
-    logger.info('Processing get notes request', {
-      requestId: event.requestContext.requestId,
-    });
+  logger.info('Processing get notes request');
 
-    // Get userId from Cognito claims
-    const userId = event.requestContext.authorizer?.claims?.sub;
+  // Query notes for the user
+  const notes = await dynamoDB.query(
+    'userId = :userId',
+    { ':userId': userId }
+  );
 
-    if (!userId) {
-      logger.warn('Unauthorized access attempt');
-      metrics.addMetric({ name: 'UnauthorizedAttempts', value: 1 });
-      return unauthorizedResponse();
-    }
+  logger.info('Notes retrieved successfully', { count: notes.length });
+  metrics.addMetric({ name: 'NotesRetrieved', value: notes.length });
 
-    logger.setContext({ userId });
-
-    // Query notes for the user
-    const notes = await dynamoDB.query(
-      'userId = :userId',
-      { ':userId': userId }
-    );
-
-    logger.info('Notes retrieved successfully', { count: notes.length });
-    metrics.addMetric({ name: 'NotesRetrieved', value: notes.length });
-    metrics.recordDuration('GetNotesDuration', startTime);
-
-    return successResponse({
-      notes,
-      count: notes.length,
-    });
-  } catch (error) {
-    logger.error('Error retrieving notes', error);
-    metrics.addMetric({ name: 'GetNotesErrors', value: 1 });
-
-    return errorResponse(
-      'Internal server error',
-      500,
-      error instanceof Error ? error.message : 'Unknown error'
-    );
-  } finally {
-    metrics.flush();
-  }
+  return successResponse({
+    notes,
+    count: notes.length,
+  });
 };
+
+export const handler = middy(baseHandler)
+  .use(loggerMiddleware())
+  .use(metricsMiddleware())
+  .use(authMiddleware())
+  .use(httpJsonBodyParser())
+  .use(httpCors())
+  .use(exceptionHandlerMiddleware());
 
