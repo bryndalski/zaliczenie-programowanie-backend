@@ -10,7 +10,6 @@ resource "aws_api_gateway_rest_api" "api" {
 }
 
 resource "aws_api_gateway_authorizer" "cognito" {
-  count = var.cognito_user_pool_arn != "" ? 1 : 0
 
   name          = "${var.variant}-${var.project}-cognito-authorizer"
   type          = "COGNITO_USER_POOLS"

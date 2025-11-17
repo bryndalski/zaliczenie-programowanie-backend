@@ -16,16 +16,18 @@ module "lambda" {
   iam_lambda_permissions = var.iam_lambda_permissions
 }
 
+# Get current AWS region and account ID
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
 # Permission for API Gateway to invoke Lambda
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = module.lambda.lambda_function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${data.aws_api_gateway_rest_api.api.execution_arn}/*/*"
-}
 
-data "aws_api_gateway_rest_api" "api" {
-  rest_api_id = var.api_gateway_id
+  # Construct execution ARN: arn:aws:execute-api:region:account-id:api-id/*/*/*
+  source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:${var.api_gateway_id}/*/*"
 }
 

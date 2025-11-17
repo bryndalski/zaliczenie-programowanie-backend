@@ -12,30 +12,6 @@
             </PendingDiffInfo>
           </value>
         </entry>
-        <entry key="$PROJECT_DIR$/terraform/modules/dynamodb/exports.tf">
-          <value>
-            <PendingDiffInfo>
-              <option name="filePath" value="$PROJECT_DIR$/terraform/modules/dynamodb/exports.tf" />
-              <option name="updatedContent" value="output &quot;table_name&quot; {&#10;  description = &quot;Name of the DynamoDB table&quot;&#10;  value       = aws_dynamodb_table.table.name&#10;}&#10;&#10;output &quot;table_arn&quot; {&#10;  description = &quot;ARN of the DynamoDB table&quot;&#10;  value       = aws_dynamodb_table.table.arn&#10;}&#10;&#10;output &quot;table_id&quot; {&#10;  description = &quot;ID of the DynamoDB table&quot;&#10;  value       = aws_dynamodb_table.table.id&#10;}&#10;&#10;output &quot;table_stream_arn&quot; {&#10;  description = &quot;ARN of the DynamoDB table stream&quot;&#10;  value       = aws_dynamodb_table.table.stream_arn&#10;}&#10;&#10;output &quot;table_stream_label&quot; {&#10;  description = &quot;Label of the DynamoDB table stream&quot;&#10;  value       = aws_dynamodb_table.table.stream_label&#10;}&#10;" />
-            </PendingDiffInfo>
-          </value>
-        </entry>
-        <entry key="$PROJECT_DIR$/terraform/modules/dynamodb/main.tf">
-          <value>
-            <PendingDiffInfo>
-              <option name="filePath" value="$PROJECT_DIR$/terraform/modules/dynamodb/main.tf" />
-              <option name="updatedContent" value="resource &quot;aws_dynamodb_table&quot; &quot;table&quot; {&#10;  name         = var.table_name&#10;  billing_mode = var.billing_mode&#10;  hash_key     = var.hash_key&#10;  range_key    = var.range_key != &quot;&quot; ? var.range_key : null&#10;&#10;  # Capacity settings (only used for PROVISIONED mode)&#10;  read_capacity  = var.billing_mode == &quot;PROVISIONED&quot; ? var.read_capacity : null&#10;  write_capacity = var.billing_mode == &quot;PROVISIONED&quot; ? var.write_capacity : null&#10;&#10;  # Define attributes&#10;  dynamic &quot;attribute&quot; {&#10;    for_each = var.attributes&#10;    content {&#10;      name = attribute.value.name&#10;      type = attribute.value.type&#10;    }&#10;  }&#10;&#10;  # Point-in-time recovery&#10;  point_in_time_recovery {&#10;    enabled = var.enable_point_in_time_recovery&#10;  }&#10;&#10;  # Server-side encryption&#10;  server_side_encryption {&#10;    enabled = var.enable_encryption&#10;  }&#10;&#10;  # Enable streams for change data capture&#10;  stream_enabled   = true&#10;  stream_view_type = &quot;NEW_AND_OLD_IMAGES&quot;&#10;&#10;  tags = var.tags&#10;}&#10;" />
-            </PendingDiffInfo>
-          </value>
-        </entry>
-        <entry key="$PROJECT_DIR$/terraform/modules/dynamodb/vars.tf">
-          <value>
-            <PendingDiffInfo>
-              <option name="filePath" value="$PROJECT_DIR$/terraform/modules/dynamodb/vars.tf" />
-              <option name="updatedContent" value="variable &quot;project&quot; {&#10;  description = &quot;Project name&quot;&#10;  type        = string&#10;}&#10;&#10;variable &quot;variant&quot; {&#10;  description = &quot;Environment variant (dev, staging, prod)&quot;&#10;  type        = string&#10;}&#10;&#10;variable &quot;table_name&quot; {&#10;  description = &quot;Name of the DynamoDB table&quot;&#10;  type        = string&#10;}&#10;&#10;variable &quot;hash_key&quot; {&#10;  description = &quot;Hash key (partition key) for the table&quot;&#10;  type        = string&#10;}&#10;&#10;variable &quot;range_key&quot; {&#10;  description = &quot;Range key (sort key) for the table&quot;&#10;  type        = string&#10;  default     = &quot;&quot;&#10;}&#10;&#10;variable &quot;attributes&quot; {&#10;  description = &quot;List of attributes for the table&quot;&#10;  type = list(object({&#10;    name = string&#10;    type = string&#10;  }))&#10;}&#10;&#10;variable &quot;billing_mode&quot; {&#10;  description = &quot;Billing mode for the table (PROVISIONED or PAY_PER_REQUEST)&quot;&#10;  type        = string&#10;  default     = &quot;PAY_PER_REQUEST&quot;&#10;}&#10;&#10;variable &quot;read_capacity&quot; {&#10;  description = &quot;Read capacity units (only for PROVISIONED billing mode)&quot;&#10;  type        = number&#10;  default     = 5&#10;}&#10;&#10;variable &quot;write_capacity&quot; {&#10;  description = &quot;Write capacity units (only for PROVISIONED billing mode)&quot;&#10;  type        = number&#10;  default     = 5&#10;}&#10;&#10;variable &quot;tags&quot; {&#10;  description = &quot;Tags to apply to resources&quot;&#10;  type        = map(string)&#10;  default     = {}&#10;}&#10;&#10;variable &quot;enable_point_in_time_recovery&quot; {&#10;  description = &quot;Enable point-in-time recovery&quot;&#10;  type        = bool&#10;  default     = true&#10;}&#10;&#10;variable &quot;enable_encryption&quot; {&#10;  description = &quot;Enable server-side encryption&quot;&#10;  type        = bool&#10;  default     = true&#10;}&#10;" />
-            </PendingDiffInfo>
-          </value>
-        </entry>
       </map>
     </option>
   </component>

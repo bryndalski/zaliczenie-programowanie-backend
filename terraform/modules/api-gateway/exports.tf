@@ -19,8 +19,8 @@ output "api_gateway_invoke_url" {
 }
 
 output "api_gateway_authorizer_id" {
-  description = "ID of the Cognito authorizer (if created)"
-  value       = length(aws_api_gateway_authorizer.cognito) > 0 ? aws_api_gateway_authorizer.cognito[0].id : ""
+  description = "ID of the Cognito authorizer"
+  value       = aws_api_gateway_authorizer.cognito.id
 }
 
 output "api_gateway_deployment_id" {

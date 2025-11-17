@@ -17,6 +17,5 @@ variable "tags" {
 variable "cognito_user_pool_arn" {
   description = "ARN of the Cognito User Pool for authorization"
   type        = string
-  default     = ""
 }
 
