@@ -18,8 +18,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading: true,
     isAuthenticated: false,
   });
+  const [isConfigured, setIsConfigured] = useState(false);
+
+  useEffect(() => {
+    // Configure Amplify once on mount
+    try {
+      configureAmplify();
+      setIsConfigured(true);
+    } catch (error) {
+      console.error('Failed to configure Amplify:', error);
+      setState({
+        user: null,
+        loading: false,
+        isAuthenticated: false,
+      });
+    }
+  }, []);
 
   const checkAuthState = async () => {
+    if (!isConfigured) {
+      console.log('Amplify not yet configured, skipping auth check');
+      return;
+    }
+
     try {
       const user = await getCurrentUser();
       const userAttributes = user.signInDetails?.loginId;
@@ -45,6 +66,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  useEffect(() => {
+    if (isConfigured) {
+      checkAuthState();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConfigured]);
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -63,10 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await checkAuthState();
   };
 
-  useEffect(() => {
-    configureAmplify();
-    checkAuthState();
-  }, []);
 
   const value: AuthContextType = {
     ...state,
