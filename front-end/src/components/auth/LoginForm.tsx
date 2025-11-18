@@ -83,7 +83,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               <input
                 {...register('email')}
                 type="email"
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="block w-full pl-10 pr-3 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter your email"
               />
             </div>
@@ -103,7 +103,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               <input
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
-                className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="block w-full pl-10 pr-12 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter your password"
               />
               <button

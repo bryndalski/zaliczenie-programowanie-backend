@@ -63,7 +63,7 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
               <input
                 {...register('email')}
                 type="email"
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="block w-full pl-10 pr-3 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter your email"
               />
             </div>
