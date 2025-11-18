@@ -29,9 +29,10 @@ const API_BASE = (
 async function getAuthHeader(): Promise<HeadersInit> {
   try {
     const session = await fetchAuthSession();
-    const token = session.tokens?.accessToken?.toString();
+    // AWS API Gateway Cognito User Pool authorizer requires ID token, not access token
+    const token = session.tokens?.idToken?.toString();
     if (!token) {
-      console.warn('No access token available');
+      console.warn('No ID token available');
       return { 'Content-Type': 'application/json' };
     }
     return {

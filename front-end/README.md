@@ -88,18 +88,25 @@ If you encounter problems with login or dashboard access:
    - Visit `/auth/debug` to check your auth state
    - Use "Log Auth State to Console" to see detailed information
 
-3. **Other auth issues:**
+3. **"401 Unauthorized" when calling API:**
+   - See [API_AUTHORIZATION_FIX.md](./API_AUTHORIZATION_FIX.md) for detailed explanation
+   - **TL;DR:** App now uses ID Token (not Access Token) for API Gateway authorization
+   - Make sure to re-login after updating code
+
+4. **Other auth issues:**
    - See [AUTH_TROUBLESHOOTING.md](./AUTH_TROUBLESHOOTING.md) for detailed guide
 
 ### Debug Tools
 
 - **Debug Page:** Visit `/auth/debug` for auth diagnostic tools
 - **Check Environment:** Run `./check-env.sh` to verify configuration
+- **Test API Auth:** Run `./test-api-auth.sh` for API authorization test instructions
 
 ## Documentation
 
 - [Dashboard Guide](./DASHBOARD_GUIDE.md) - Complete guide to notes dashboard features
 - [Auth Troubleshooting](./AUTH_TROUBLESHOOTING.md) - Solving authentication problems
+- [API Authorization Fix](./API_AUTHORIZATION_FIX.md) - Understanding ID Token vs Access Token
 
 ## Learn More
 
