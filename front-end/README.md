@@ -2,23 +2,77 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### 1. Environment Configuration
+
+First, you need to set up your environment variables. You have two options:
+
+#### Option A: Automatic (Recommended)
+Run the script to automatically generate `.env.local` from Terraform outputs:
+
+```bash
+./generate-env.sh
+```
+
+This script requires `jq` to be installed. On macOS:
+```bash
+brew install jq
+```
+
+#### Option B: Manual
+Copy the example file and fill in the values:
+
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local` with your AWS Cognito and API Gateway configuration.
+
+### 2. Install Dependencies
+
+```bash
+npm install
+# or
+yarn install
+```
+
+### 3. Run the Development Server
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/src/app` - Next.js App Router pages
+  - `/auth` - Authentication pages (login, register, forgot password)
+  - `/dashboard` - Protected dashboard page
+- `/src/components` - React components
+  - `/auth` - Authentication-related components
+- `/src/contexts` - React contexts (AuthContext)
+- `/src/hooks` - Custom React hooks (useAuthActions, useNotes)
+- `/src/lib` - Library configurations and utilities
+
+## Features
+
+- ✅ AWS Cognito authentication
+- ✅ Protected routes with middleware
+- ✅ Login, Register, Forgot Password flows
+- ✅ Dashboard with notes management (CRUD operations)
+- ✅ Tailwind CSS styling
+- ✅ TypeScript support
+
+## Environment Variables
+
+The following environment variables are required:
+
+- `NEXT_PUBLIC_COGNITO_USER_POOL_ID` - AWS Cognito User Pool ID
+- `NEXT_PUBLIC_COGNITO_CLIENT_ID` - AWS Cognito Client ID
+- `NEXT_PUBLIC_COGNITO_REGION` - AWS Region (e.g., eu-central-1)
+- `NEXT_PUBLIC_API_GATEWAY_URL` - API Gateway endpoint URL
 
 ## Learn More
 
@@ -29,8 +83,3 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

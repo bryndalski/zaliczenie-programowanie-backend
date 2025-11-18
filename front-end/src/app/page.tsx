@@ -34,9 +34,7 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-center min-h-screen py-12">
           <div className="text-center">
-            <h1 className="text-6xl font-bold text-gray-900 mb-4">
-              Todo App
-            </h1>
+            <h1 className="text-6xl font-bold text-gray-900 mb-4">Todo App</h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl">
               A modern, secure todo application with user authentication and cloud sync.
               Sign up to get started or log in to access your tasks.
@@ -65,9 +63,7 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure Authentication</h3>
-              <p className="text-gray-600">
-                Your data is protected with AWS Cognito authentication
-              </p>
+              <p className="text-gray-600">Your data is protected with AWS Cognito authentication</p>
             </div>
 
             <div className="text-center">
@@ -77,9 +73,7 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Cloud Sync</h3>
-              <p className="text-gray-600">
-                Access your todos from anywhere, automatically synced
-              </p>
+              <p className="text-gray-600">Access your todos from anywhere, automatically synced</p>
             </div>
 
             <div className="text-center">
@@ -89,27 +83,11 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Fast & Modern</h3>
-              <p className="text-gray-600">
-                Built with Next.js and Tailwind for optimal performance
-              </p>
+              <p className="text-gray-600">Built with Next.js and Tailwind for optimal performance</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
     </div>
   );
 }

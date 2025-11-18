@@ -3,12 +3,36 @@
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, User, Settings } from 'lucide-react';
+import { useState } from 'react';
+import useNotes from '@/hooks/useNotes';
 
 export default function DashboardPage() {
   const { user, signOut } = useAuth();
+  const { notes, loading, error, addNote, fetchNotes } = useNotes();
+
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !content.trim()) return;
+    setSubmitting(true);
+    try {
+      await addNote(title.trim(), content.trim());
+      setTitle('');
+      setContent('');
+      // refresh list
+      await fetchNotes();
+    } catch (err) {
+      // handled in hook
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -99,18 +123,64 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Main Content Area */}
+            {/* Notes Area */}
             <div className="mt-8">
               <div className="bg-white shadow rounded-lg">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
+                <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                  <h3 className="text-lg font-medium text-gray-900">Notes</h3>
+                  <div className="text-sm text-gray-500">{notes.length} notes</div>
                 </div>
+
                 <div className="p-6">
-                  <p className="text-gray-500 text-center py-12">
-                    No recent activity to display. This is where your app content would go.
-                  </p>
+                  <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                    <input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Title"
+                      className="col-span-1 md:col-span-1 p-2 border rounded"
+                    />
+                    <input
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder="Content"
+                      className="col-span-1 md:col-span-1 p-2 border rounded"
+                    />
+                    <div className="col-span-1 md:col-span-1">
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
+                      >
+                        {submitting ? 'Adding...' : 'Add Note'}
+                      </button>
+                    </div>
+                  </form>
+
+                  {error && <div className="text-red-600 mb-4">{error}</div>}
+
+                  {loading ? (
+                    <div>Loading notes...</div>
+                  ) : notes.length === 0 ? (
+                    <div className="text-gray-600">No notes yet.</div>
+                  ) : (
+                    <ul className="space-y-3">
+                      {notes.map((n) => (
+                        <li key={n.noteId} className="p-4 border rounded shadow-sm">
+                          <div className="text-sm text-gray-500 mb-1">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
+                          <div className="font-semibold">{n.title}</div>
+                          <div className="mt-2 text-gray-800">{n.content}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
+            </div>
+
+            <div className="mt-6">
+              <button onClick={() => void signOut()} className="px-4 py-2 bg-red-500 text-white rounded">
+                Sign out
+              </button>
             </div>
           </div>
         </main>
