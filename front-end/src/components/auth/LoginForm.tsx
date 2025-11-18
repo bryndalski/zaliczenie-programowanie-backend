@@ -4,9 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AlertCircle, RefreshCw } from 'lucide-react';
 import { loginSchema, LoginFormData } from '@/lib/validation';
 import { useAuthActions } from '@/hooks/useAuthActions';
+import { forceSignOut } from '@/lib/auth-utils';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -14,6 +15,7 @@ interface LoginFormProps {
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [showPassword, setShowPassword] = React.useState(false);
+  const [isClearing, setIsClearing] = React.useState(false);
   const { handleLogin, loading, error, clearError } = useAuthActions();
 
   const {
@@ -32,6 +34,11 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     }
   };
 
+  const handleClearSession = async () => {
+    setIsClearing(true);
+    await forceSignOut();
+  };
+
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white shadow-xl rounded-lg p-8">
@@ -41,11 +48,25 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-            <div className="text-sm text-red-700">
-              <p className="font-medium">Sign in failed</p>
-              <p>{error.message}</p>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="text-sm text-red-700">
+                  <p className="font-medium">Sign in failed</p>
+                  <p>{error.message}</p>
+                </div>
+                {error.message.includes('already a signed in user') && (
+                  <button
+                    onClick={handleClearSession}
+                    disabled={isClearing}
+                    className="mt-3 flex items-center gap-2 text-sm text-red-700 hover:text-red-900 font-medium"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isClearing ? 'animate-spin' : ''}`} />
+                    Clear session and retry
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -134,7 +155,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/auth/register" className="text-blue-600 hover:text-blue-500 font-medium">
               Create account
             </Link>

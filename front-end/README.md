@@ -74,6 +74,33 @@ The following environment variables are required:
 - `NEXT_PUBLIC_COGNITO_REGION` - AWS Region (e.g., eu-central-1)
 - `NEXT_PUBLIC_API_GATEWAY_URL` - API Gateway endpoint URL
 
+## Troubleshooting
+
+### Authentication Issues
+
+If you encounter problems with login or dashboard access:
+
+1. **"There is already a signed in user" error:**
+   - Click the "Clear session and retry" button in the error message
+   - Or visit `/auth/debug` and use "Force Sign Out & Clear All"
+
+2. **Can't access dashboard:**
+   - Visit `/auth/debug` to check your auth state
+   - Use "Log Auth State to Console" to see detailed information
+
+3. **Other auth issues:**
+   - See [AUTH_TROUBLESHOOTING.md](./AUTH_TROUBLESHOOTING.md) for detailed guide
+
+### Debug Tools
+
+- **Debug Page:** Visit `/auth/debug` for auth diagnostic tools
+- **Check Environment:** Run `./check-env.sh` to verify configuration
+
+## Documentation
+
+- [Dashboard Guide](./DASHBOARD_GUIDE.md) - Complete guide to notes dashboard features
+- [Auth Troubleshooting](./AUTH_TROUBLESHOOTING.md) - Solving authentication problems
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

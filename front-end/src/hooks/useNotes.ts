@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Auth } from 'aws-amplify';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 export type Note = {
   userId: string;
@@ -10,21 +10,37 @@ export type Note = {
   content: string;
   createdAt: string;
   updatedAt: string;
-  [k: string]: any;
+};
+
+export type CreateNoteInput = {
+  title: string;
+  content: string;
+};
+
+export type UpdateNoteInput = {
+  title?: string;
+  content?: string;
 };
 
 const API_BASE = (
-  process.env.NEXT_PUBLIC_API_GATEWAY_URL || process.env.NEXT_PUBLIC_NOTES_API_URL || ''
+  process.env.NEXT_PUBLIC_API_GATEWAY_URL || ''
 ).replace(/\/$/, '');
 
-async function getAuthHeader() {
+async function getAuthHeader(): Promise<HeadersInit> {
   try {
-    const session = await Auth.currentSession();
-    const token = session.getAccessToken().getJwtToken();
-    return { Authorization: `Bearer ${token}` };
-  } catch (err) {
-    // Not authenticated or unable to get token
-    return {};
+    const session = await fetchAuthSession();
+    const token = session.tokens?.accessToken?.toString();
+    if (!token) {
+      console.warn('No access token available');
+      return { 'Content-Type': 'application/json' };
+    }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return { 'Content-Type': 'application/json' };
   }
 }
 
@@ -32,10 +48,11 @@ export default function useNotes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   const fetchNotes = useCallback(async () => {
     if (!API_BASE) {
-      setError('API base URL is not configured (set NEXT_PUBLIC_API_GATEWAY_URL or NEXT_PUBLIC_NOTES_API_URL)');
+      setError('API base URL is not configured');
       setLoading(false);
       return;
     }
@@ -44,38 +61,38 @@ export default function useNotes() {
     setError(null);
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        ...(await getAuthHeader()),
-      };
-
+      const headers = await getAuthHeader();
       const res = await fetch(`${API_BASE}/notes/get`, { headers });
-      if (!res.ok) throw new Error(`Failed to fetch notes: ${res.status}`);
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch notes: ${res.status}`);
+      }
 
       const json = await res.json();
-      // Lambda returns { notes, count }
       const incoming = Array.isArray(json?.notes) ? json.notes : [];
       setNotes(incoming);
-    } catch (e: any) {
-      setError(e?.message || 'Failed to load notes');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to load notes';
+      setError(message);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const addNote = useCallback(async (title: string, content: string) => {
-    if (!API_BASE) throw new Error('API base URL is not configured');
-    setError(null);
-    try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        ...(await getAuthHeader()),
-      };
+  const addNote = useCallback(async (input: CreateNoteInput): Promise<Note> => {
+    if (!API_BASE) {
+      throw new Error('API base URL is not configured');
+    }
 
+    setActionLoading(true);
+    setError(null);
+
+    try {
+      const headers = await getAuthHeader();
       const res = await fetch(`${API_BASE}/notes/add`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ title, content }),
+        body: JSON.stringify(input),
       });
 
       if (!res.ok) {
@@ -83,16 +100,90 @@ export default function useNotes() {
         throw new Error(`Create failed: ${res.status} ${txt}`);
       }
 
-      // response contains { note }
       const json = await res.json();
       const created = json?.note;
+
       if (created) {
         setNotes((prev) => [created, ...prev]);
       }
+
       return created;
-    } catch (e: any) {
-      setError(e?.message || 'Failed to create note');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to create note';
+      setError(message);
       throw e;
+    } finally {
+      setActionLoading(false);
+    }
+  }, []);
+
+  const updateNote = useCallback(async (noteId: string, input: UpdateNoteInput): Promise<Note> => {
+    if (!API_BASE) {
+      throw new Error('API base URL is not configured');
+    }
+
+    setActionLoading(true);
+    setError(null);
+
+    try {
+      const headers = await getAuthHeader();
+      const res = await fetch(`${API_BASE}/notes/update?noteId=${noteId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(input),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Update failed: ${res.status} ${txt}`);
+      }
+
+      const json = await res.json();
+      const updated = json?.note;
+
+      if (updated) {
+        setNotes((prev) =>
+          prev.map((note) => (note.noteId === noteId ? updated : note))
+        );
+      }
+
+      return updated;
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to update note';
+      setError(message);
+      throw e;
+    } finally {
+      setActionLoading(false);
+    }
+  }, []);
+
+  const deleteNote = useCallback(async (noteId: string): Promise<void> => {
+    if (!API_BASE) {
+      throw new Error('API base URL is not configured');
+    }
+
+    setActionLoading(true);
+    setError(null);
+
+    try {
+      const headers = await getAuthHeader();
+      const res = await fetch(`${API_BASE}/notes/delete?noteId=${noteId}`, {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Delete failed: ${res.status} ${txt}`);
+      }
+
+      setNotes((prev) => prev.filter((note) => note.noteId !== noteId));
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to delete note';
+      setError(message);
+      throw e;
+    } finally {
+      setActionLoading(false);
     }
   }, []);
 
@@ -100,6 +191,15 @@ export default function useNotes() {
     void fetchNotes();
   }, [fetchNotes]);
 
-  return { notes, loading, error, fetchNotes, addNote };
+  return {
+    notes,
+    loading,
+    error,
+    actionLoading,
+    fetchNotes,
+    addNote,
+    updateNote,
+    deleteNote,
+  };
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn, signUp, confirmSignUp, resetPassword, confirmResetPassword } from 'aws-amplify/auth';
+import { signIn, signUp, confirmSignUp, resetPassword, confirmResetPassword, signOut, getCurrentUser } from 'aws-amplify/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import type {
   LoginCredentials,
@@ -23,6 +23,16 @@ export function useAuthActions() {
     setError(null);
 
     try {
+      // Check if user is already signed in and sign out first
+      try {
+        await getCurrentUser();
+        // If we get here, user is already signed in, so sign out first
+        console.log('User already signed in, signing out first...');
+        await signOut();
+      } catch {
+        // User is not signed in, continue with login
+      }
+
       await signIn({
         username: credentials.email,
         password: credentials.password,
@@ -30,10 +40,13 @@ export function useAuthActions() {
 
       await refreshAuth();
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
+      const errorCode = err instanceof Error && 'name' in err ? (err as any).name : 'UnknownError';
+
       setError({
-        message: err.message || 'Failed to sign in',
-        code: err.name,
+        message: errorMessage,
+        code: errorCode,
       });
       return false;
     } finally {
@@ -57,10 +70,13 @@ export function useAuthActions() {
       });
 
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create account';
+      const errorCode = err instanceof Error && 'name' in err ? (err as any).name : 'UnknownError';
+
       setError({
-        message: err.message || 'Failed to create account',
-        code: err.name,
+        message: errorMessage,
+        code: errorCode,
       });
       return false;
     } finally {
@@ -79,10 +95,13 @@ export function useAuthActions() {
       });
 
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to confirm account';
+      const errorCode = err instanceof Error && 'name' in err ? (err as any).name : 'UnknownError';
+
       setError({
-        message: err.message || 'Failed to confirm account',
-        code: err.name,
+        message: errorMessage,
+        code: errorCode,
       });
       return false;
     } finally {
@@ -100,10 +119,13 @@ export function useAuthActions() {
       });
 
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send reset code';
+      const errorCode = err instanceof Error && 'name' in err ? (err as any).name : 'UnknownError';
+
       setError({
-        message: err.message || 'Failed to send reset code',
-        code: err.name,
+        message: errorMessage,
+        code: errorCode,
       });
       return false;
     } finally {
@@ -123,10 +145,13 @@ export function useAuthActions() {
       });
 
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to reset password';
+      const errorCode = err instanceof Error && 'name' in err ? (err as any).name : 'UnknownError';
+
       setError({
-        message: err.message || 'Failed to reset password',
-        code: err.name,
+        message: errorMessage,
+        code: errorCode,
       });
       return false;
     } finally {

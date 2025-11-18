@@ -10,31 +10,9 @@ const authRoutes = ['/auth/login', '/auth/register', '/auth/forgot-password'];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check if the route is protected
-  const isProtectedRoute = protectedRoutes.some(route =>
-    pathname.startsWith(route)
-  );
-
-  // Check if the route is auth-related
-  const isAuthRoute = authRoutes.some(route =>
-    pathname.startsWith(route)
-  );
-
-  // Get auth token from cookies (you'll need to implement this based on your auth setup)
-  const authToken = request.cookies.get('auth-token');
-  const isAuthenticated = !!authToken;
-
-  // Redirect unauthenticated users from protected routes to login
-  if (isProtectedRoute && !isAuthenticated) {
-    const loginUrl = new URL('/auth/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Redirect authenticated users from auth routes to dashboard
-  if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
+  // For now, allow all routes - authentication is handled client-side by ProtectedRoute component
+  // This is because AWS Amplify stores tokens in localStorage, not in httpOnly cookies
+  // TODO: Implement server-side session management for better security
 
   return NextResponse.next();
 }
