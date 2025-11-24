@@ -1,17 +1,18 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, Handler } from 'aws-lambda';
 import middy from '@middy/core';
 import httpJsonBodyParser from '@middy/http-json-body-parser';
 import httpCors from '@middy/http-cors';
 
+// Import from local layers - these will be available in /opt/nodejs at runtime
+import { createDynamoDBHelper } from '../../layers/dynamodb/nodejs';
 import {
-  createDynamoDBHelper,
   loggerMiddleware,
   metricsMiddleware,
   exceptionHandlerMiddleware,
   authMiddleware,
   successResponse,
   MiddyContext,
-} from '/opt/nodejs';
+} from '../../layers/telemetry/nodejs';
 
 import { NoteEntity, Note } from '../../entities';
 
@@ -31,7 +32,7 @@ const baseHandler = async (
     { ':userId': userId }
   );
 
-  const notes = notesData.map((data) => NoteEntity.fromData(data as Note).toJSON());
+  const notes = notesData.map((data: any) => NoteEntity.fromData(data as Note).toJSON());
 
   logger.info('Notes retrieved successfully', { count: notes.length });
   metrics.addMetric({ name: 'NotesRetrieved', value: notes.length });
@@ -42,7 +43,7 @@ const baseHandler = async (
   });
 };
 
-export const handler = middy(baseHandler)
+export const handler: Handler<APIGatewayProxyEvent, APIGatewayProxyResult> = middy(baseHandler)
   .use(loggerMiddleware())
   .use(metricsMiddleware())
   .use(authMiddleware())

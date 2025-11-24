@@ -1,11 +1,11 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, Handler } from 'aws-lambda';
 import middy from '@middy/core';
 import httpJsonBodyParser from '@middy/http-json-body-parser';
 import httpCors from '@middy/http-cors';
 
-// Import from Lambda layers
+// Import from local layers - these will be available in /opt/nodejs at runtime
+import { createDynamoDBHelper } from '../../layers/dynamodb/nodejs';
 import {
-  createDynamoDBHelper,
   loggerMiddleware,
   metricsMiddleware,
   exceptionHandlerMiddleware,
@@ -13,7 +13,7 @@ import {
   createHttpError,
   noContentResponse,
   MiddyContext,
-} from '/opt/nodejs';
+} from '../../layers/telemetry/nodejs';
 
 // Import shared entities
 import { NoteEntity, Note } from '../../entities';
@@ -62,7 +62,7 @@ const baseHandler = async (
   return noContentResponse();
 };
 
-export const handler = middy(baseHandler)
+export const handler: Handler<APIGatewayProxyEvent, APIGatewayProxyResult> = middy(baseHandler)
   .use(loggerMiddleware())
   .use(metricsMiddleware())
   .use(authMiddleware())

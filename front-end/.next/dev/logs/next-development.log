@@ -31,3 +31,19 @@
 [00:00:28.245] Browser LOG     🔑 ID Token (first 50 chars): eyJraWQiOiJ0M0lvR09qeVpCeEtFTXBDOVA2NXBSK2hlRURmRG
 [00:00:28.245] Browser LOG     🔓 Token payload: {"aud":"53mjrf78hmn67fe0sf1lfjti8n","email":"kubabryndal@gmail.com","exp":"2025-11-24T15:46:12.000Z","iat":"2025-11-24T14:46:12.000Z","iss":"https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_dBuqwAOur","sub":"2394f8e2-c0b1-70ef-f8f9-9d304e14c0b8","token_use":"id"}
 [00:00:28.488] Browser ERROR   ❌ API test failed: {}
+[00:09:12.269] Browser LOG     🧪 Testing API call...
+[00:09:12.269] Browser LOG     🧪 Testing API call...
+[00:09:12.269] Browser LOG     🔍 Starting auth debug...
+[00:09:12.269] Browser LOG     ✅ Current user: {"signInDetails":{"authFlowType":"USER_SRP_AUTH","loginId":"kubabryndal@gmail.com"},"userId":"2394f8e2-c0b1-70ef-f8f9-9d304e14c0b8","username":"2394f8e2-c0b1-70ef-f8f9-9d304e14c0b8"}
+[00:09:12.769] Browser LOG     ✅ Auth session: {"credentials":"Missing","tokens":{"accessToken":"Present","idToken":"Present","refreshToken":"Missing"}}
+[00:09:12.769] Browser LOG     🔑 ID Token (first 50 chars): eyJraWQiOiJ0M0lvR09qeVpCeEtFTXBDOVA2NXBSK2hlRURmRG
+[00:09:12.769] Browser LOG     🔓 Token payload: {"aud":"53mjrf78hmn67fe0sf1lfjti8n","email":"kubabryndal@gmail.com","exp":"2025-11-24T15:54:57.000Z","iat":"2025-11-24T14:54:57.000Z","iss":"https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_dBuqwAOur","sub":"2394f8e2-c0b1-70ef-f8f9-9d304e14c0b8","token_use":"id"}
+[00:09:13.626] Browser ERROR   ❌ API test failed: {}
+[00:20:22.342] Browser LOG     🧪 Testing API call...
+[00:20:22.343] Browser LOG     🧪 Testing API call...
+[00:20:22.343] Browser LOG     🔍 Starting auth debug...
+[00:20:22.343] Browser LOG     ✅ Current user: {"signInDetails":{"authFlowType":"USER_SRP_AUTH","loginId":"kubabryndal@gmail.com"},"userId":"2394f8e2-c0b1-70ef-f8f9-9d304e14c0b8","username":"2394f8e2-c0b1-70ef-f8f9-9d304e14c0b8"}
+[00:20:22.961] Browser LOG     ✅ Auth session: {"credentials":"Missing","tokens":{"accessToken":"Present","idToken":"Present","refreshToken":"Missing"}}
+[00:20:22.961] Browser LOG     🔑 ID Token (first 50 chars): eyJraWQiOiJ0M0lvR09qeVpCeEtFTXBDOVA2NXBSK2hlRURmRG
+[00:20:22.961] Browser LOG     🔓 Token payload: {"aud":"53mjrf78hmn67fe0sf1lfjti8n","email":"kubabryndal@gmail.com","exp":"2025-11-24T16:06:07.000Z","iat":"2025-11-24T15:06:07.000Z","iss":"https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_dBuqwAOur","sub":"2394f8e2-c0b1-70ef-f8f9-9d304e14c0b8","token_use":"id"}
+[00:20:23.970] Browser ERROR   ❌ API test failed: {}
