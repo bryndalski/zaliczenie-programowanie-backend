@@ -3,7 +3,6 @@ import middy from '@middy/core';
 import httpJsonBodyParser from '@middy/http-json-body-parser';
 import httpCors from '@middy/http-cors';
 
-// Import from local layers - these will be available in /opt/nodejs at runtime
 import { createDynamoDBHelper } from '../../layers/dynamodb/nodejs';
 import {
   loggerMiddleware,
