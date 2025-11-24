@@ -1,202 +1,165 @@
-# Notes Dashboard
+# Dashboard Guide - Notes Application
 
-Kompletny dashboard do zarządzania notatkami z pełnymi funkcjonalnościami CRUD.
+## 🎯 Przegląd
+Dashboard aplikacji Notes umożliwia pełne zarządzanie notatkami z funkcjonalnościami CRUD (Create, Read, Update, Delete).
 
-## Funkcjonalności
+## 🚀 Pierwsze uruchomienie
 
-### ✅ Tworzenie notatek
-- Modal z formularzem
-- Walidacja wymaganych pól
-- Obsługa błędów
-- Loading states
+### 1. Przygotuj środowisko
+```bash
+# Wygeneruj poprawny .env.local
+./generate-env.sh
 
-### ✅ Wyświetlanie notatek
-- Grid layout (responsywny)
-- Karty z informacjami o notatkach
-- Daty utworzenia i modyfikacji
-- Stan pustej listy (empty state)
-- Stan ładowania
+# Sprawdź konfigurację
+./check-env.sh
 
-### ✅ Edycja notatek
-- Modal z pre-wypełnionym formularzem
-- Aktualizacja tylko zmienionych pól
-- Walidacja
-- Optymistyczna aktualizacja UI
+# Uruchom z debugowaniem
+./start-debug.sh
+```
 
-### ✅ Usuwanie notatek
-- Modal potwierdzenia
-- Ochrona przed przypadkowym usunięciem
-- Natychmiastowa aktualizacja UI
+### 2. Zaloguj się
+1. Otwórz http://localhost:3000
+2. Kliknij "Register" jeśli nie masz konta
+3. Podaj email i hasło (min. 8 znaków, wielka/mała litera, cyfra)
+4. Potwierdź email jeśli wymagane
+5. Zaloguj się
 
-### ✅ Dodatkowe funkcje
-- Odświeżanie listy notatek
-- Licznik notatek
-- Obsługa błędów API
-- Loading states dla wszystkich operacji
-- Wylogowanie
+## 📋 Funkcjonalności Dashboard
 
-## Komponenty
+### ➕ Tworzenie notatek
+1. Kliknij przycisk **"New Note"** (niebieski, prawy górny róg)
+2. Wprowadź tytuł notatki (wymagane)
+3. Wprowadź treść notatki (opcjonalne)
+4. Kliknij **"Create Note"**
 
-### `useNotes` Hook
-Custom hook zarządzający stanem notatek i komunikacją z API.
+### 📖 Wyświetlanie notatek
+- Wszystkie notatki wyświetlają się w siatce kart
+- Każda karta zawiera: tytuł, treść, datę utworzenia/aktualizacji
+- Liczba notatek pokazana jest w lewym górnym rogu
 
-**Zwraca:**
-- `notes`: lista notatek
-- `loading`: stan ładowania
-- `error`: komunikat błędu
-- `actionLoading`: stan ładowania akcji (create/update/delete)
-- `fetchNotes()`: odświeżenie listy
-- `addNote(input)`: dodanie notatki
-- `updateNote(noteId, input)`: aktualizacja notatki
-- `deleteNote(noteId)`: usunięcie notatki
+### ✏️ Edycja notatek
+1. Kliknij ikonę **ołówka** (Edit) na karcie notatki
+2. Zmodyfikuj tytuł lub treść
+3. Kliknij **"Update Note"**
 
-### `NoteCard`
-Komponent wyświetlający pojedynczą notatkę.
+### 🗑️ Usuwanie notatek
+1. Kliknij ikonę **kosza** (Delete) na karcie notatki
+2. Potwierdź usunięcie w dialogu
+3. Notatka zostanie usunięta bezpowrotnie
 
-**Props:**
-- `note`: obiekt notatki
-- `onEdit`: callback edycji
-- `onDelete`: callback usunięcia
+### 🔄 Odświeżanie
+- Kliknij ikonę **odświeżania** obok tytułu "My Notes"
+- Notatki zostaną pobrane z serwera
 
-### `CreateNoteModal`
-Modal do tworzenia nowych notatek.
+### 🚪 Wylogowanie
+- Kliknij **"Sign Out"** w prawym górnym rogu
 
-**Props:**
-- `isOpen`: czy modal jest otwarty
-- `onClose`: callback zamknięcia
-- `onSubmit`: callback wysłania formularza
+## 🔧 Debugowanie
 
-### `EditNoteModal`
-Modal do edycji istniejących notatek.
+### AuthDebugger Widget
+W prawym dolnym rogu znajdziesz widget debugowania:
 
-**Props:**
-- `isOpen`: czy modal jest otwarty
-- `note`: edytowana notatka
-- `onClose`: callback zamknięcia
-- `onSubmit`: callback aktualizacji
+1. **"Debug Auth"** - sprawdza stan autoryzacji
+   - Status użytkownika
+   - Obecność tokenów
+   - Ważność tokenów
 
-### `DeleteConfirmModal`
-Modal potwierdzenia usunięcia.
+2. **"Test API Call"** - testuje połączenie z API
+   - Sprawdza czy tokeny są wysyłane
+   - Testuje odpowiedź serwera
 
-**Props:**
-- `isOpen`: czy modal jest otwarty
-- `noteTitle`: tytuł usuwanej notatki
-- `onConfirm`: callback potwierdzenia
-- `onCancel`: callback anulowania
-- `loading`: stan ładowania
+### Browser Console
+Otwórz Developer Tools (F12) i sprawdź:
+- **Console** - logi aplikacji z emoji dla łatwiejszego filtrowania:
+  - 🔐 = operacje autoryzacji
+  - 📡 = requesty API
+  - ✅ = operacje udane
+  - ❌ = błędy
 
-## API Endpoints
+- **Network** - sprawdź requesty HTTP:
+  - Czy zawierają header `Authorization: Bearer ...`
+  - Jakie statusy odpowiedzi otrzymujesz
 
-Wszystkie endpointy wymagają autoryzacji (Bearer token z AWS Cognito).
+## 🐛 Rozwiązywanie problemów
 
-### `GET /notes/get`
-Pobiera listę notatek użytkownika.
+### Problem: Nie można zalogować
+1. Sprawdź `.env.local`
+2. Uruchom `./check-env.sh`
+3. Sprawdź console na błędy
 
-**Response:**
-```json
+### Problem: Brak notatek po zalogowaniu
+1. Sprawdź Network tab - czy requesty mają Authorization header
+2. Użyj AuthDebugger → "Test API Call"
+3. Sprawdź czy API zwraca 200 OK
+
+### Problem: "Unauthorized" error
+1. Przeczytaj `API_AUTHORIZATION_FIX.md`
+2. Uruchom `./fix-auth.sh`
+3. Wyloguj się i zaloguj ponownie
+
+### Problem: Aplikacja się zawiesza
+1. Wyczyść localStorage: `localStorage.clear()`
+2. Odśwież stronę
+3. Zaloguj ponownie
+
+## 📊 Struktura danych
+
+### Notatka (Note)
+```typescript
 {
-  "notes": [
-    {
-      "userId": "string",
-      "noteId": "string",
-      "title": "string",
-      "content": "string",
-      "createdAt": "ISO-8601",
-      "updatedAt": "ISO-8601"
-    }
-  ],
-  "count": number
+  userId: string;      // ID użytkownika (automatyczne)
+  noteId: string;      // Unikalny ID notatki (automatyczne)
+  title: string;       // Tytuł notatki (wymagane)
+  content: string;     // Treść notatki (opcjonalne)
+  createdAt: string;   // Data utworzenia (automatyczne)
+  updatedAt: string;   // Data aktualizacji (automatyczne)
 }
 ```
 
-### `POST /notes/add`
-Tworzy nową notatkę.
+## 🔒 Bezpieczeństwo
 
-**Request:**
-```json
-{
-  "title": "string",
-  "content": "string"
-}
-```
+### Autoryzacja
+- Wszystkie operacje wymagają logowania
+- Każdy użytkownik widzi tylko swoje notatki
+- Tokeny JWT są automatycznie dołączane do requestów
 
-**Response:**
-```json
-{
-  "note": {
-    "userId": "string",
-    "noteId": "string",
-    "title": "string",
-    "content": "string",
-    "createdAt": "ISO-8601",
-    "updatedAt": "ISO-8601"
-  }
-}
-```
+### Walidacja
+- Tytuł notatki jest wymagany
+- Maksymalna długość tytułu: 100 znaków
+- Treść jest opcjonalna
 
-### `PUT /notes/update?noteId={id}`
-Aktualizuje istniejącą notatkę.
+## 🛠️ Technologie
 
-**Request:**
-```json
-{
-  "title": "string (optional)",
-  "content": "string (optional)"
-}
-```
+### Frontend
+- **Next.js 16** - framework React
+- **Tailwind CSS** - stylowanie
+- **AWS Amplify** - autoryzacja
+- **TypeScript** - typowanie
 
-**Response:**
-```json
-{
-  "message": "Note updated successfully",
-  "note": {
-    "userId": "string",
-    "noteId": "string",
-    "title": "string",
-    "content": "string",
-    "createdAt": "ISO-8601",
-    "updatedAt": "ISO-8601"
-  }
-}
-```
+### Backend
+- **AWS Lambda** - funkcje serverless
+- **API Gateway** - REST API
+- **DynamoDB** - baza danych NoSQL
+- **Cognito** - zarządzanie użytkownikami
 
-### `DELETE /notes/delete?noteId={id}`
-Usuwa notatkę.
+## 📞 Pomoc
 
-**Response:** 204 No Content
+Jeśli masz problemy:
 
-## Technologie
+1. **Sprawdź dokumentację**:
+   - `AUTH_TROUBLESHOOTING.md` - problemy z logowaniem
+   - `API_AUTHORIZATION_FIX.md` - problemy z API
 
-- **React 19** - UI framework
-- **Next.js 16** - App Router
-- **TypeScript** - type safety
-- **Tailwind CSS** - styling
-- **AWS Amplify** - autentykacja
-- **Lucide React** - ikony
+2. **Użyj narzędzi debugowania**:
+   - `./check-env.sh` - sprawdź środowisko
+   - `./fix-auth.sh` - automatyczna naprawa
+   - AuthDebugger widget - testowanie w czasie rzeczywistym
 
-## Struktura plików
+3. **Zbierz informacje**:
+   - Browser console logs
+   - Network tab screenshots
+   - Output skryptów diagnostycznych
 
-```
-src/
-├── app/
-│   └── dashboard/
-│       └── page.tsx          # Główna strona dashboardu
-├── components/
-│   └── notes/
-│       ├── index.ts          # Exports
-│       ├── NoteCard.tsx      # Karta notatki
-│       ├── CreateNoteModal.tsx
-│       ├── EditNoteModal.tsx
-│       └── DeleteConfirmModal.tsx
-├── hooks/
-│   └── useNotes.ts           # Hook zarządzający notatkami
-└── types/
-    └── auth.ts               # Typy auth (User, etc.)
-```
+---
 
-## Użycie
-
-Dashboard jest dostępny po zalogowaniu na ścieżce `/dashboard`.
-
-Wszystkie operacje są zabezpieczone przez middleware Next.js, który sprawdza czy użytkownik jest zalogowany (sesja w cookies).
-
+**Miłego korzystania z aplikacji Notes! 📝**

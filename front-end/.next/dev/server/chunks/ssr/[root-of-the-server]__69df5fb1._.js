@@ -142,7 +142,13 @@ function AuthProvider({ children }) {
             return;
         }
         try {
+            console.log('🔍 Checking auth state...');
             const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$auth$2f$dist$2f$esm$2f$providers$2f$cognito$2f$apis$2f$getCurrentUser$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getCurrentUser"])();
+            console.log('✅ User found:', {
+                userId: user.userId,
+                username: user.username,
+                signInDetails: user.signInDetails
+            });
             const userData = {
                 id: user.userId,
                 email: user.signInDetails?.loginId || user.username || '',
@@ -154,8 +160,9 @@ function AuthProvider({ children }) {
                 loading: false,
                 isAuthenticated: true
             });
+            console.log('✅ Auth state updated - user is authenticated');
         } catch (error) {
-            console.log('No authenticated user found:', error);
+            console.log('❌ No authenticated user found:', error);
             setState({
                 user: null,
                 loading: false,
@@ -190,6 +197,7 @@ function AuthProvider({ children }) {
         }
     };
     const refreshAuth = async ()=>{
+        console.log('🔄 Refreshing auth state...');
         setState((prev)=>({
                 ...prev,
                 loading: true
@@ -206,7 +214,7 @@ function AuthProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/src/contexts/AuthContext.tsx",
-        lineNumber: 107,
+        lineNumber: 117,
         columnNumber: 5
     }, this);
 }

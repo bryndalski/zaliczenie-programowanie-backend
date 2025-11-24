@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AuthDebugger from '@/components/auth/AuthDebugger';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, User, Plus, RefreshCw, AlertCircle, FileText } from 'lucide-react';
 import useNotes, { Note } from '@/hooks/useNotes';
@@ -191,6 +192,9 @@ export default function DashboardPage() {
           }}
           loading={actionLoading}
         />
+
+        {/* Debug tool - remove in production */}
+        <AuthDebugger />
       </div>
     </ProtectedRoute>
   );

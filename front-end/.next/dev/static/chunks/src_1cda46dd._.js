@@ -107,6 +107,298 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
 }),
+"[project]/src/lib/api-test.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "debugAuth",
+    ()=>debugAuth,
+    "testApiCall",
+    ()=>testApiCall
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$fetchAuthSession$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@aws-amplify/core/dist/esm/singleton/apis/fetchAuthSession.mjs [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$auth$2f$dist$2f$esm$2f$providers$2f$cognito$2f$apis$2f$getCurrentUser$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@aws-amplify/auth/dist/esm/providers/cognito/apis/getCurrentUser.mjs [app-client] (ecmascript)");
+'use client';
+;
+async function debugAuth() {
+    try {
+        console.log('🔍 Starting auth debug...');
+        // Check if user is authenticated
+        const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$auth$2f$dist$2f$esm$2f$providers$2f$cognito$2f$apis$2f$getCurrentUser$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getCurrentUser"])();
+        console.log('✅ Current user:', {
+            userId: user.userId,
+            username: user.username,
+            signInDetails: user.signInDetails
+        });
+        // Get auth session with force refresh
+        const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$fetchAuthSession$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["fetchAuthSession"])({
+            forceRefresh: true
+        });
+        console.log('✅ Auth session:', {
+            credentials: session.credentials ? 'Present' : 'Missing',
+            identityId: session.identityId,
+            tokens: session.tokens ? {
+                accessToken: session.tokens.accessToken ? 'Present' : 'Missing',
+                idToken: session.tokens.idToken ? 'Present' : 'Missing',
+                refreshToken: session.tokens.refreshToken ? 'Present' : 'Missing'
+            } : 'Missing'
+        });
+        // Check token details
+        if (session.tokens?.idToken) {
+            const idToken = session.tokens.idToken.toString();
+            console.log('🔑 ID Token (first 50 chars):', idToken.substring(0, 50));
+            // Decode token payload (without verification for debugging)
+            try {
+                const payload = JSON.parse(atob(idToken.split('.')[1]));
+                console.log('🔓 Token payload:', {
+                    iss: payload.iss,
+                    sub: payload.sub,
+                    aud: payload.aud,
+                    exp: new Date(payload.exp * 1000).toISOString(),
+                    iat: new Date(payload.iat * 1000).toISOString(),
+                    token_use: payload.token_use,
+                    email: payload.email
+                });
+            } catch (e) {
+                console.error('❌ Failed to decode token:', e);
+            }
+        }
+        return {
+            isAuthenticated: true,
+            token: session.tokens?.idToken?.toString(),
+            user
+        };
+    } catch (error) {
+        console.error('❌ Auth debug failed:', error);
+        return {
+            isAuthenticated: false,
+            error
+        };
+    }
+}
+async function testApiCall() {
+    try {
+        console.log('🧪 Testing API call...');
+        const authResult = await debugAuth();
+        if (!authResult.isAuthenticated) {
+            throw new Error('Not authenticated');
+        }
+        const apiUrl = ("TURBOPACK compile-time value", "https://io3jsoifpi.execute-api.eu-central-1.amazonaws.com/default");
+        if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+        ;
+        const response = await fetch(`${apiUrl}/notes/get`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authResult.token}`
+            }
+        });
+        console.log('📡 API Response:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries())
+        });
+        const text = await response.text();
+        console.log('📄 Response body:', text);
+        if (!response.ok) {
+            throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+        }
+        return JSON.parse(text);
+    } catch (error) {
+        console.error('❌ API test failed:', error);
+        throw error;
+    }
+}
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/src/components/auth/AuthDebugger.tsx [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>AuthDebugger
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2d$test$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/api-test.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/contexts/AuthContext.tsx [app-client] (ecmascript)");
+;
+var _s = __turbopack_context__.k.signature();
+'use client';
+;
+;
+;
+function AuthDebugger() {
+    _s();
+    const [debugInfo, setDebugInfo] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
+    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const { user, isAuthenticated } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAuth"])();
+    const handleDebugAuth = async ()=>{
+        setLoading(true);
+        setDebugInfo('');
+        try {
+            console.clear();
+            console.log('🔍 Starting auth debug...');
+            const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2d$test$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["debugAuth"])();
+            setDebugInfo(JSON.stringify(result, null, 2));
+        } catch (error) {
+            setDebugInfo(`Error: ${error}`);
+        } finally{
+            setLoading(false);
+        }
+    };
+    const handleTestApi = async ()=>{
+        setLoading(true);
+        setDebugInfo('');
+        try {
+            console.clear();
+            console.log('🧪 Testing API call...');
+            const result_0 = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2d$test$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["testApiCall"])();
+            setDebugInfo(JSON.stringify(result_0, null, 2));
+        } catch (error_0) {
+            setDebugInfo(`API Error: ${error_0}`);
+        } finally{
+            setLoading(false);
+        }
+    };
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        className: "fixed bottom-4 right-4 bg-white border-2 border-blue-500 rounded-lg p-4 shadow-lg max-w-sm",
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                className: "font-bold text-lg mb-3",
+                children: "Auth Debugger"
+            }, void 0, false, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 42,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "mb-3 text-sm",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                children: "Auth Status:"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                                lineNumber: 45,
+                                columnNumber: 12
+                            }, this),
+                            " ",
+                            isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated'
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 45,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                children: "User:"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                                lineNumber: 46,
+                                columnNumber: 12
+                            }, this),
+                            " ",
+                            user?.email || 'None'
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 46,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 44,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "space-y-2",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: handleDebugAuth,
+                        disabled: loading,
+                        className: "w-full px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 text-sm",
+                        children: loading ? 'Testing...' : 'Debug Auth'
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 50,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: handleTestApi,
+                        disabled: loading || !isAuthenticated,
+                        className: "w-full px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 text-sm",
+                        children: loading ? 'Testing...' : 'Test API Call'
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 54,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 49,
+                columnNumber: 7
+            }, this),
+            debugInfo && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "mt-3",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        className: "text-xs font-semibold mb-1",
+                        children: "Debug Info:"
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 60,
+                        columnNumber: 11
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("pre", {
+                        className: "text-xs bg-gray-100 p-2 rounded max-h-40 overflow-auto",
+                        children: debugInfo
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 61,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 59,
+                columnNumber: 21
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                className: "text-xs text-gray-500 mt-2",
+                children: "Check browser console for detailed logs"
+            }, void 0, false, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 66,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+        lineNumber: 41,
+        columnNumber: 10
+    }, this);
+}
+_s(AuthDebugger, "I76ZvBcUllnGxjprkKUl5JDi4ek=", false, function() {
+    return [
+        __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAuth"]
+    ];
+});
+_c = AuthDebugger;
+var _c;
+__turbopack_context__.k.register(_c, "AuthDebugger");
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
 "[project]/src/hooks/useNotes.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
@@ -124,24 +416,71 @@ var _s = __turbopack_context__.k.signature();
 const API_BASE = (("TURBOPACK compile-time value", "https://io3jsoifpi.execute-api.eu-central-1.amazonaws.com/default") || '').replace(/\/$/, '');
 async function getAuthHeader() {
     try {
-        const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$fetchAuthSession$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["fetchAuthSession"])();
-        // AWS API Gateway Cognito User Pool authorizer requires ID token, not access token
-        const token = session.tokens?.idToken?.toString();
-        if (!token) {
-            console.warn('No ID token available');
-            return {
-                'Content-Type': 'application/json'
-            };
+        console.log('🔐 Getting auth session...');
+        // Try multiple times to get a valid session
+        let session;
+        let attempts = 0;
+        const maxAttempts = 3;
+        while(attempts < maxAttempts){
+            try {
+                // Force refresh to ensure we have the latest tokens
+                session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$fetchAuthSession$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["fetchAuthSession"])({
+                    forceRefresh: attempts > 0
+                });
+                if (session.tokens?.idToken) {
+                    break; // We got a token, exit the loop
+                }
+                console.warn(`⚠️ No tokens in session, attempt ${attempts + 1}/${maxAttempts}`);
+                attempts++;
+                if (attempts < maxAttempts) {
+                    // Wait a bit before retrying
+                    await new Promise((resolve)=>setTimeout(resolve, 500));
+                }
+            } catch (sessionError) {
+                console.error(`❌ Session error on attempt ${attempts + 1}:`, sessionError);
+                attempts++;
+                if (attempts < maxAttempts) {
+                    await new Promise((resolve)=>setTimeout(resolve, 500));
+                }
+            }
+        }
+        if (!session || !session.tokens?.idToken) {
+            console.error('❌ Failed to get valid session after all attempts');
+            throw new Error('Authentication session not available. Please log in again.');
+        }
+        console.log('📊 Auth session:', {
+            credentials: session.credentials ? 'Present' : 'Missing',
+            identityId: session.identityId ? 'Present' : 'Missing',
+            tokens: session.tokens ? 'Present' : 'Missing'
+        });
+        const token = session.tokens.idToken.toString();
+        console.log('✅ ID token found (first 20 chars):', token.substring(0, 20) + '...');
+        // Decode token to check expiry (without verification)
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const exp = new Date(payload.exp * 1000);
+            const now = new Date();
+            console.log('🔍 Token details:', {
+                expires: exp.toISOString(),
+                isExpired: now > exp,
+                user: payload.sub,
+                email: payload.email,
+                timeUntilExpiry: Math.max(0, Math.floor((exp.getTime() - now.getTime()) / 1000 / 60)) + ' minutes'
+            });
+            if (now > exp) {
+                console.warn('⚠️ Token is expired');
+                throw new Error('Authentication token has expired. Please log in again.');
+            }
+        } catch (decodeError) {
+            console.warn('⚠️ Could not decode token:', decodeError);
         }
         return {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         };
     } catch (error) {
-        console.error('Error getting auth token:', error);
-        return {
-            'Content-Type': 'application/json'
-        };
+        console.error('❌ Error getting auth token:', error);
+        throw error;
     }
 }
 function useNotes() {
@@ -160,18 +499,30 @@ function useNotes() {
             setLoading(true);
             setError(null);
             try {
+                console.log('🚀 Fetching notes...');
                 const headers = await getAuthHeader();
+                console.log('📡 Making request to:', `${API_BASE}/notes/get`);
+                console.log('📋 Headers:', headers);
                 const res = await fetch(`${API_BASE}/notes/get`, {
+                    method: 'GET',
                     headers
                 });
+                console.log('📥 Response status:', res.status, res.statusText);
                 if (!res.ok) {
-                    throw new Error(`Failed to fetch notes: ${res.status}`);
+                    const responseText = await res.text();
+                    console.error('❌ API Error Response:', responseText);
+                    if (res.status === 401) {
+                        throw new Error('Unauthorized: Please log in again');
+                    }
+                    throw new Error(`Failed to fetch notes: ${res.status} ${res.statusText}`);
                 }
                 const json = await res.json();
+                console.log('✅ Notes fetched successfully:', json);
                 const incoming = Array.isArray(json?.notes) ? json.notes : [];
                 setNotes(incoming);
             } catch (e) {
                 const message = e instanceof Error ? e.message : 'Failed to load notes';
+                console.error('❌ Fetch notes error:', message);
                 setError(message);
             } finally{
                 setLoading(false);
@@ -1294,6 +1645,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/compiler-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$auth$2f$ProtectedRoute$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/auth/ProtectedRoute.tsx [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$auth$2f$AuthDebugger$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/auth/AuthDebugger.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/contexts/AuthContext.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$log$2d$out$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__LogOut$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/log-out.js [app-client] (ecmascript) <export default as LogOut>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__User$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/user.js [app-client] (ecmascript) <export default as User>");
@@ -1319,14 +1671,15 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+;
 function DashboardPage() {
     _s();
-    const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(78);
-    if ($[0] !== "cddc1a8e731a09da24aea6b4ef791f531a61d12d7e7b5e8382376fb205102b84") {
-        for(let $i = 0; $i < 78; $i += 1){
+    const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(79);
+    if ($[0] !== "2dc46f8b6118324890de4a64c143aead44db73466d6ae22303c15a745bf2337f") {
+        for(let $i = 0; $i < 79; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "cddc1a8e731a09da24aea6b4ef791f531a61d12d7e7b5e8382376fb205102b84";
+        $[0] = "2dc46f8b6118324890de4a64c143aead44db73466d6ae22303c15a745bf2337f";
     }
     const { user, signOut } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAuth"])();
     const { notes, loading, error, actionLoading, addNote, updateNote, deleteNote, fetchNotes } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$useNotes$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])();
@@ -1428,7 +1781,7 @@ function DashboardPage() {
             children: "My Notes"
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 128,
+            lineNumber: 129,
             columnNumber: 10
         }, this);
         $[11] = t5;
@@ -1442,7 +1795,7 @@ function DashboardPage() {
             className: t6
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 136,
+            lineNumber: 137,
             columnNumber: 10
         }, this);
         $[12] = t6;
@@ -1464,13 +1817,13 @@ function DashboardPage() {
                     children: t7
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 144,
+                    lineNumber: 145,
                     columnNumber: 59
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 144,
+            lineNumber: 145,
             columnNumber: 10
         }, this);
         $[14] = handleRefresh;
@@ -1486,7 +1839,7 @@ function DashboardPage() {
             className: "h-4 w-4 text-gray-600"
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 154,
+            lineNumber: 155,
             columnNumber: 10
         }, this);
         $[18] = t9;
@@ -1505,13 +1858,13 @@ function DashboardPage() {
                     children: t10
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 162,
+                    lineNumber: 163,
                     columnNumber: 99
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 162,
+            lineNumber: 163,
             columnNumber: 11
         }, this);
         $[19] = t10;
@@ -1526,7 +1879,7 @@ function DashboardPage() {
             className: "h-4 w-4"
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 171,
+            lineNumber: 172,
             columnNumber: 11
         }, this);
         t13 = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1534,7 +1887,7 @@ function DashboardPage() {
             children: "Sign Out"
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 172,
+            lineNumber: 173,
             columnNumber: 11
         }, this);
         $[21] = t12;
@@ -1554,7 +1907,7 @@ function DashboardPage() {
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 181,
+            lineNumber: 182,
             columnNumber: 11
         }, this);
         $[23] = handleSignOut;
@@ -1572,7 +1925,7 @@ function DashboardPage() {
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 189,
+            lineNumber: 190,
             columnNumber: 11
         }, this);
         $[25] = t11;
@@ -1595,17 +1948,17 @@ function DashboardPage() {
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 198,
+                    lineNumber: 199,
                     columnNumber: 106
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/dashboard/page.tsx",
-                lineNumber: 198,
+                lineNumber: 199,
                 columnNumber: 50
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 198,
+            lineNumber: 199,
             columnNumber: 11
         }, this);
         $[28] = t15;
@@ -1620,7 +1973,7 @@ function DashboardPage() {
             className: "h-5 w-5"
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 207,
+            lineNumber: 208,
             columnNumber: 11
         }, this);
         $[31] = t17;
@@ -1645,18 +1998,18 @@ function DashboardPage() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/dashboard/page.tsx",
-                        lineNumber: 215,
+                        lineNumber: 216,
                         columnNumber: 120
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/dashboard/page.tsx",
-                lineNumber: 215,
+                lineNumber: 216,
                 columnNumber: 56
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 215,
+            lineNumber: 216,
             columnNumber: 11
         }, this);
         $[32] = notes.length;
@@ -1684,20 +2037,20 @@ function DashboardPage() {
                     className: "h-5 w-5"
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 233,
+                    lineNumber: 234,
                     columnNumber: 159
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                     children: "New Note"
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 233,
+                    lineNumber: 234,
                     columnNumber: 187
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 233,
+            lineNumber: 234,
             columnNumber: 11
         }, this);
         $[36] = t21;
@@ -1714,7 +2067,7 @@ function DashboardPage() {
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 240,
+            lineNumber: 241,
             columnNumber: 11
         }, this);
         $[37] = t19;
@@ -1731,7 +2084,7 @@ function DashboardPage() {
                     className: "h-5 w-5 text-red-600 mt-0.5"
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 248,
+                    lineNumber: 249,
                     columnNumber: 116
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1742,7 +2095,7 @@ function DashboardPage() {
                             children: "Error"
                         }, void 0, false, {
                             fileName: "[project]/src/app/dashboard/page.tsx",
-                            lineNumber: 248,
+                            lineNumber: 249,
                             columnNumber: 195
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1750,19 +2103,19 @@ function DashboardPage() {
                             children: error
                         }, void 0, false, {
                             fileName: "[project]/src/app/dashboard/page.tsx",
-                            lineNumber: 248,
+                            lineNumber: 249,
                             columnNumber: 254
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 248,
+                    lineNumber: 249,
                     columnNumber: 171
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 248,
+            lineNumber: 249,
             columnNumber: 20
         }, this);
         $[39] = error;
@@ -1779,7 +2132,7 @@ function DashboardPage() {
                     className: "h-12 w-12 text-gray-400 animate-spin mx-auto mb-4"
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 256,
+                    lineNumber: 257,
                     columnNumber: 79
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1787,13 +2140,13 @@ function DashboardPage() {
                     children: "Loading your notes..."
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 256,
+                    lineNumber: 257,
                     columnNumber: 154
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 256,
+            lineNumber: 257,
             columnNumber: 44
         }, this);
         $[41] = loading;
@@ -1811,7 +2164,7 @@ function DashboardPage() {
                     className: "h-16 w-16 text-gray-400 mx-auto mb-4"
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 265,
+                    lineNumber: 266,
                     columnNumber: 120
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -1819,7 +2172,7 @@ function DashboardPage() {
                     children: "No notes yet"
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 265,
+                    lineNumber: 266,
                     columnNumber: 181
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1827,7 +2180,7 @@ function DashboardPage() {
                     children: "Create your first note to get started!"
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 265,
+                    lineNumber: 266,
                     columnNumber: 253
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1840,20 +2193,20 @@ function DashboardPage() {
                             className: "h-5 w-5"
                         }, void 0, false, {
                             fileName: "[project]/src/app/dashboard/page.tsx",
-                            lineNumber: 267,
+                            lineNumber: 268,
                             columnNumber: 168
                         }, this),
                         "Create Note"
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 265,
+                    lineNumber: 266,
                     columnNumber: 329
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 265,
+            lineNumber: 266,
             columnNumber: 55
         }, this);
         $[44] = error;
@@ -1874,13 +2227,13 @@ function DashboardPage() {
                         onDelete: handleDeleteClick
                     }, note_1.noteId, false, {
                         fileName: "[project]/src/app/dashboard/page.tsx",
-                        lineNumber: 278,
+                        lineNumber: 279,
                         columnNumber: 49
                     }, this)
             }["DashboardPage[notes.map()]"])
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 277,
+            lineNumber: 278,
             columnNumber: 31
         }, this);
         $[48] = handleDeleteClick;
@@ -1904,12 +2257,12 @@ function DashboardPage() {
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/dashboard/page.tsx",
-                lineNumber: 288,
+                lineNumber: 289,
                 columnNumber: 68
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 288,
+            lineNumber: 289,
             columnNumber: 11
         }, this);
         $[51] = t22;
@@ -1938,7 +2291,7 @@ function DashboardPage() {
             onSubmit: addNote
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 309,
+            lineNumber: 310,
             columnNumber: 11
         }, this);
         $[58] = addNote;
@@ -1968,7 +2321,7 @@ function DashboardPage() {
             onSubmit: updateNote
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 330,
+            lineNumber: 331,
             columnNumber: 11
         }, this);
         $[62] = isEditModalOpen;
@@ -2001,7 +2354,7 @@ function DashboardPage() {
             loading: actionLoading
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 353,
+            lineNumber: 354,
             columnNumber: 11
         }, this);
         $[67] = actionLoading;
@@ -2013,8 +2366,19 @@ function DashboardPage() {
         t34 = $[71];
     }
     let t35;
-    if ($[72] !== t16 || $[73] !== t27 || $[74] !== t29 || $[75] !== t31 || $[76] !== t34) {
-        t35 = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$auth$2f$ProtectedRoute$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+    if ($[72] === Symbol.for("react.memo_cache_sentinel")) {
+        t35 = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$auth$2f$AuthDebugger$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
+            fileName: "[project]/src/app/dashboard/page.tsx",
+            lineNumber: 365,
+            columnNumber: 11
+        }, this);
+        $[72] = t35;
+    } else {
+        t35 = $[72];
+    }
+    let t36;
+    if ($[73] !== t16 || $[74] !== t27 || $[75] !== t29 || $[76] !== t31 || $[77] !== t34) {
+        t36 = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$auth$2f$ProtectedRoute$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "min-h-screen bg-gray-50",
                 children: [
@@ -2022,28 +2386,29 @@ function DashboardPage() {
                     t27,
                     t29,
                     t31,
-                    t34
+                    t34,
+                    t35
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/dashboard/page.tsx",
-                lineNumber: 364,
+                lineNumber: 372,
                 columnNumber: 27
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 364,
+            lineNumber: 372,
             columnNumber: 11
         }, this);
-        $[72] = t16;
-        $[73] = t27;
-        $[74] = t29;
-        $[75] = t31;
-        $[76] = t34;
-        $[77] = t35;
+        $[73] = t16;
+        $[74] = t27;
+        $[75] = t29;
+        $[76] = t31;
+        $[77] = t34;
+        $[78] = t36;
     } else {
-        t35 = $[77];
+        t36 = $[78];
     }
-    return t35;
+    return t36;
 }
 _s(DashboardPage, "2bnpyuNzFp/MNRsl+qcyz2IRZTM=", false, function() {
     return [
@@ -2058,728 +2423,6 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
 }),
-"[project]/node_modules/next/navigation.js [app-client] (ecmascript)", ((__turbopack_context__, module, exports) => {
-
-module.exports = __turbopack_context__.r("[project]/node_modules/next/dist/client/components/navigation.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/lucide-react/dist/esm/shared/src/utils.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "hasA11yProp",
-    ()=>hasA11yProp,
-    "mergeClasses",
-    ()=>mergeClasses,
-    "toCamelCase",
-    ()=>toCamelCase,
-    "toKebabCase",
-    ()=>toKebabCase,
-    "toPascalCase",
-    ()=>toPascalCase
-]);
-const toKebabCase = (string)=>string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-const toCamelCase = (string)=>string.replace(/^([A-Z])|[\s-_]+(\w)/g, (match, p1, p2)=>p2 ? p2.toUpperCase() : p1.toLowerCase());
-const toPascalCase = (string)=>{
-    const camelCase = toCamelCase(string);
-    return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
-};
-const mergeClasses = (...classes)=>classes.filter((className, index, array)=>{
-        return Boolean(className) && className.trim() !== "" && array.indexOf(className) === index;
-    }).join(" ").trim();
-const hasA11yProp = (props)=>{
-    for(const prop in props){
-        if (prop.startsWith("aria-") || prop === "role" || prop === "title") {
-            return true;
-        }
-    }
-};
-;
- //# sourceMappingURL=utils.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/defaultAttributes.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "default",
-    ()=>defaultAttributes
-]);
-var defaultAttributes = {
-    xmlns: "http://www.w3.org/2000/svg",
-    width: 24,
-    height: 24,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 2,
-    strokeLinecap: "round",
-    strokeLinejoin: "round"
-};
-;
- //# sourceMappingURL=defaultAttributes.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/Icon.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "default",
-    ()=>Icon
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$defaultAttributes$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/defaultAttributes.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/shared/src/utils.js [app-client] (ecmascript)");
-;
-;
-;
-const Icon = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["forwardRef"])(({ color = "currentColor", size = 24, strokeWidth = 2, absoluteStrokeWidth, className = "", children, iconNode, ...rest }, ref)=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createElement"])("svg", {
-        ref,
-        ...__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$defaultAttributes$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"],
-        width: size,
-        height: size,
-        stroke: color,
-        strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
-        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["mergeClasses"])("lucide", className),
-        ...!children && !(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["hasA11yProp"])(rest) && {
-            "aria-hidden": "true"
-        },
-        ...rest
-    }, [
-        ...iconNode.map(([tag, attrs])=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createElement"])(tag, attrs)),
-        ...Array.isArray(children) ? children : [
-            children
-        ]
-    ]));
-;
- //# sourceMappingURL=Icon.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "default",
-    ()=>createLucideIcon
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/shared/src/utils.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$Icon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/Icon.js [app-client] (ecmascript)");
-;
-;
-;
-const createLucideIcon = (iconName, iconNode)=>{
-    const Component = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["forwardRef"])(({ className, ...props }, ref)=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createElement"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$Icon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-            ref,
-            iconNode,
-            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["mergeClasses"])(`lucide-${(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toKebabCase"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toPascalCase"])(iconName))}`, `lucide-${iconName}`, className),
-            ...props
-        }));
-    Component.displayName = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toPascalCase"])(iconName);
-    return Component;
-};
-;
- //# sourceMappingURL=createLucideIcon.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/log-out.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>LogOut
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "path",
-        {
-            d: "m16 17 5-5-5-5",
-            key: "1bji2h"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M21 12H9",
-            key: "dn1m92"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4",
-            key: "1uf3rs"
-        }
-    ]
-];
-const LogOut = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("log-out", __iconNode);
-;
- //# sourceMappingURL=log-out.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/log-out.js [app-client] (ecmascript) <export default as LogOut>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "LogOut",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$log$2d$out$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$log$2d$out$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/log-out.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/user.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>User
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "path",
-        {
-            d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2",
-            key: "975kel"
-        }
-    ],
-    [
-        "circle",
-        {
-            cx: "12",
-            cy: "7",
-            r: "4",
-            key: "17ys0d"
-        }
-    ]
-];
-const User = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("user", __iconNode);
-;
- //# sourceMappingURL=user.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/user.js [app-client] (ecmascript) <export default as User>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "User",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/user.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/plus.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>Plus
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "path",
-        {
-            d: "M5 12h14",
-            key: "1ays0h"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M12 5v14",
-            key: "s699le"
-        }
-    ]
-];
-const Plus = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("plus", __iconNode);
-;
- //# sourceMappingURL=plus.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/plus.js [app-client] (ecmascript) <export default as Plus>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "Plus",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/plus.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/refresh-cw.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>RefreshCw
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "path",
-        {
-            d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8",
-            key: "v9h5vc"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M21 3v5h-5",
-            key: "1q7to0"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16",
-            key: "3uifl3"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M8 16H3v5",
-            key: "1cv678"
-        }
-    ]
-];
-const RefreshCw = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("refresh-cw", __iconNode);
-;
- //# sourceMappingURL=refresh-cw.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/refresh-cw.js [app-client] (ecmascript) <export default as RefreshCw>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "RefreshCw",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$refresh$2d$cw$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$refresh$2d$cw$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/refresh-cw.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/circle-alert.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>CircleAlert
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "circle",
-        {
-            cx: "12",
-            cy: "12",
-            r: "10",
-            key: "1mglay"
-        }
-    ],
-    [
-        "line",
-        {
-            x1: "12",
-            x2: "12",
-            y1: "8",
-            y2: "12",
-            key: "1pkeuh"
-        }
-    ],
-    [
-        "line",
-        {
-            x1: "12",
-            x2: "12.01",
-            y1: "16",
-            y2: "16",
-            key: "4dfq90"
-        }
-    ]
-];
-const CircleAlert = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("circle-alert", __iconNode);
-;
- //# sourceMappingURL=circle-alert.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/circle-alert.js [app-client] (ecmascript) <export default as AlertCircle>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "AlertCircle",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$alert$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$alert$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/circle-alert.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/file-text.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>FileText
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "path",
-        {
-            d: "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z",
-            key: "1oefj6"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M14 2v5a1 1 0 0 0 1 1h5",
-            key: "wfsgrz"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M10 9H8",
-            key: "b1mrlr"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M16 13H8",
-            key: "t4e002"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M16 17H8",
-            key: "z1uh3a"
-        }
-    ]
-];
-const FileText = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("file-text", __iconNode);
-;
- //# sourceMappingURL=file-text.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/file-text.js [app-client] (ecmascript) <export default as FileText>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "FileText",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$text$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$text$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/file-text.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/@aws-amplify/core/dist/esm/singleton/apis/internal/fetchAuthSession.mjs [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: Apache-2.0
-__turbopack_context__.s([
-    "fetchAuthSession",
-    ()=>fetchAuthSession
-]);
-const fetchAuthSession = (amplify, options)=>{
-    return amplify.Auth.fetchAuthSession(options);
-};
-;
- //# sourceMappingURL=fetchAuthSession.mjs.map
-}),
-"[project]/node_modules/@aws-amplify/core/dist/esm/singleton/apis/fetchAuthSession.mjs [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "fetchAuthSession",
-    ()=>fetchAuthSession
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$Amplify$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@aws-amplify/core/dist/esm/singleton/Amplify.mjs [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$internal$2f$fetchAuthSession$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@aws-amplify/core/dist/esm/singleton/apis/internal/fetchAuthSession.mjs [app-client] (ecmascript)");
-;
-;
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: Apache-2.0
-/**
- * Fetch the auth session including the tokens and credentials if they are available. By default it
- * will automatically refresh expired auth tokens if a valid refresh token is present. You can force a refresh
- * of non-expired tokens with `{ forceRefresh: true }` input.
- *
- * @param options - Options configuring the fetch behavior.
- * @throws {@link AuthError} - Throws error when session information cannot be refreshed.
- * @returns Promise<AuthSession>
- */ const fetchAuthSession = (options)=>{
-    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$internal$2f$fetchAuthSession$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["fetchAuthSession"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$Amplify$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Amplify"], options);
-};
-;
- //# sourceMappingURL=fetchAuthSession.mjs.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/trash-2.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>Trash2
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "path",
-        {
-            d: "M10 11v6",
-            key: "nco0om"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M14 11v6",
-            key: "outv1u"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6",
-            key: "miytrc"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M3 6h18",
-            key: "d0wm0j"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",
-            key: "e791ji"
-        }
-    ]
-];
-const Trash2 = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("trash-2", __iconNode);
-;
- //# sourceMappingURL=trash-2.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/trash-2.js [app-client] (ecmascript) <export default as Trash2>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "Trash2",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$trash$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$trash$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/trash-2.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/pen.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>Pen
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "path",
-        {
-            d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
-            key: "1a8usu"
-        }
-    ]
-];
-const Pen = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("pen", __iconNode);
-;
- //# sourceMappingURL=pen.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/pen.js [app-client] (ecmascript) <export default as Edit2>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "Edit2",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$pen$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$pen$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/pen.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/calendar.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>Calendar
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "path",
-        {
-            d: "M8 2v4",
-            key: "1cmpym"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M16 2v4",
-            key: "4m81vk"
-        }
-    ],
-    [
-        "rect",
-        {
-            width: "18",
-            height: "18",
-            x: "3",
-            y: "4",
-            rx: "2",
-            key: "1hopcy"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "M3 10h18",
-            key: "8toen8"
-        }
-    ]
-];
-const Calendar = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("calendar", __iconNode);
-;
- //# sourceMappingURL=calendar.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/calendar.js [app-client] (ecmascript) <export default as Calendar>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "Calendar",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$calendar$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$calendar$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/calendar.js [app-client] (ecmascript)");
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/x.js [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-/**
- * @license lucide-react v0.554.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */ __turbopack_context__.s([
-    "__iconNode",
-    ()=>__iconNode,
-    "default",
-    ()=>X
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/createLucideIcon.js [app-client] (ecmascript)");
-;
-const __iconNode = [
-    [
-        "path",
-        {
-            d: "M18 6 6 18",
-            key: "1bl5f8"
-        }
-    ],
-    [
-        "path",
-        {
-            d: "m6 6 12 12",
-            key: "d8bk6v"
-        }
-    ]
-];
-const X = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("x", __iconNode);
-;
- //# sourceMappingURL=x.js.map
-}),
-"[project]/node_modules/lucide-react/dist/esm/icons/x.js [app-client] (ecmascript) <export default as X>", ((__turbopack_context__) => {
-"use strict";
-
-__turbopack_context__.s([
-    "X",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"]
-]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/x.js [app-client] (ecmascript)");
-}),
 ]);
 
-//# sourceMappingURL=_ed4311ec._.js.map
+//# sourceMappingURL=src_1cda46dd._.js.map

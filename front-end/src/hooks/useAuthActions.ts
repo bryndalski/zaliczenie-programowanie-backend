@@ -23,25 +23,53 @@ export function useAuthActions() {
     setError(null);
 
     try {
+      console.log('🔑 Starting login process...');
+
       // Always try to sign out first to clear any stale state
       try {
         await signOut();
+        console.log('🧹 Cleared existing session');
         // Wait a bit to ensure cleanup is complete
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
       } catch {
-        // Ignore errors if no user was signed in
+        console.log('📝 No existing session to clear');
       }
 
+      console.log('🚀 Attempting sign-in...');
       const result = await signIn({
         username: credentials.email,
         password: credentials.password,
       });
 
+      console.log('📊 Sign-in result:', {
+        isSignedIn: result.isSignedIn,
+        nextStep: result.nextStep?.signInStep
+      });
+
       // Check if sign-in was successful
       if (result.isSignedIn) {
+        console.log('✅ Sign-in successful, refreshing auth state...');
         await refreshAuth();
+
+        // Wait a bit more to ensure tokens are available
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Verify that we actually have tokens
+        try {
+          const { fetchAuthSession } = await import('aws-amplify/auth');
+          const session = await fetchAuthSession();
+          if (!session.tokens?.idToken) {
+            throw new Error('No tokens available after login');
+          }
+          console.log('✅ Tokens verified after login');
+        } catch (tokenError) {
+          console.error('❌ Token verification failed:', tokenError);
+          throw new Error('Login failed: Unable to obtain authentication tokens');
+        }
+
         return true;
       } else {
+        console.warn('⚠️ Sign-in not completed:', result.nextStep);
         setError({
           message: 'Sign-in was not completed',
           code: 'SignInIncomplete',
@@ -51,6 +79,8 @@ export function useAuthActions() {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
       const errorCode = err instanceof Error && 'name' in err ? (err as any).name : 'UnknownError';
+
+      console.error('❌ Login error:', { errorMessage, errorCode });
 
       setError({
         message: errorMessage,

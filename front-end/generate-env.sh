@@ -1,57 +1,65 @@
 #!/bin/bash
 
-# Script to generate .env.local file from Terraform outputs
-# Usage: ./generate-env.sh
+echo "🔄 Generating .env.local from Terraform outputs..."
 
-set -e
+# Navigate to terraform directory
+cd ../terraform
 
-echo "🔍 Fetching Terraform outputs..."
-
-# Change to terraform directory
-TERRAFORM_DIR="../terraform"
-FRONTEND_DIR="."
-
-if [ ! -d "$TERRAFORM_DIR" ]; then
-  echo "❌ Error: Terraform directory not found at $TERRAFORM_DIR"
-  exit 1
+# Check if terraform directory exists
+if [ ! -d "." ]; then
+    echo "❌ Terraform directory not found!"
+    exit 1
 fi
 
-# Get Terraform outputs as JSON
-cd "$TERRAFORM_DIR"
-OUTPUTS=$(terraform output -json)
+# Get terraform outputs
+echo "📡 Getting Terraform outputs..."
+API_URL=$(terraform output -raw api_gateway_url 2>/dev/null)
+CLIENT_ID=$(terraform output -raw cognito_client_id 2>/dev/null)
+USER_POOL_ID=$(terraform output -raw cognito_user_pool_id 2>/dev/null)
 
-if [ $? -ne 0 ]; then
-  echo "❌ Error: Failed to get Terraform outputs"
-  exit 1
+# Extract region from user pool ID (format: region_poolid)
+if [ ! -z "$USER_POOL_ID" ]; then
+    REGION=$(echo "$USER_POOL_ID" | cut -d'_' -f1)
+else
+    REGION="eu-central-1"
 fi
 
-# Extract values from JSON
-API_URL=$(echo $OUTPUTS | jq -r '.api_gateway_url.value')
-COGNITO_USER_POOL_ID=$(echo $OUTPUTS | jq -r '.cognito_user_pool_id.value')
-COGNITO_CLIENT_ID=$(echo $OUTPUTS | jq -r '.cognito_client_id.value')
+# Navigate back to frontend
+cd ../front-end
 
-# Extract region from user pool ID (format: region_xxxxx)
-COGNITO_REGION=$(echo $COGNITO_USER_POOL_ID | cut -d'_' -f1)
-
-# Generate .env.local file
-cd - > /dev/null
-cd "$FRONTEND_DIR"
-
+# Create .env.local file
 cat > .env.local << EOF
-# AWS Cognito Configuration
-NEXT_PUBLIC_COGNITO_USER_POOL_ID=$COGNITO_USER_POOL_ID
-NEXT_PUBLIC_COGNITO_CLIENT_ID=$COGNITO_CLIENT_ID
-NEXT_PUBLIC_COGNITO_REGION=$COGNITO_REGION
+# AWS Cognito Configuration - Generated from Terraform
+NEXT_PUBLIC_COGNITO_USER_POOL_ID=${USER_POOL_ID}
+NEXT_PUBLIC_COGNITO_CLIENT_ID=${CLIENT_ID}
+NEXT_PUBLIC_COGNITO_REGION=${REGION}
 
-# API Gateway Configuration
-NEXT_PUBLIC_API_GATEWAY_URL=$API_URL
+# API Gateway Configuration - Generated from Terraform
+NEXT_PUBLIC_API_GATEWAY_URL=${API_URL}
+
+# Generated on: $(date)
 EOF
 
-echo "✅ Successfully generated .env.local file!"
 echo ""
-echo "📝 Configuration:"
-echo "  Region: $COGNITO_REGION"
-echo "  User Pool ID: $COGNITO_USER_POOL_ID"
-echo "  Client ID: $COGNITO_CLIENT_ID"
-echo "  API URL: $API_URL"
+echo "✅ Generated .env.local with the following values:"
+echo "   User Pool ID: ${USER_POOL_ID:-❌ Not found}"
+echo "   Client ID: ${CLIENT_ID:-❌ Not found}"
+echo "   Region: ${REGION:-❌ Not found}"
+echo "   API URL: ${API_URL:-❌ Not found}"
 
+# Validate
+if [ -z "$USER_POOL_ID" ] || [ -z "$CLIENT_ID" ] || [ -z "$API_URL" ]; then
+    echo ""
+    echo "⚠️  Some values are missing. This might indicate:"
+    echo "   - Terraform hasn't been applied yet"
+    echo "   - You're not in the right directory"
+    echo "   - Infrastructure wasn't deployed successfully"
+    echo ""
+    echo "🔧 Try running:"
+    echo "   cd ../terraform && terraform apply"
+    exit 1
+else
+    echo ""
+    echo "🎉 Environment file generated successfully!"
+    echo "📁 Location: $(pwd)/.env.local"
+fi

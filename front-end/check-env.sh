@@ -1,50 +1,54 @@
 #!/bin/bash
 
-echo "🔍 Checking environment configuration..."
-echo ""
+echo "🔍 Environment Variables Check"
+echo "==============================="
 
-# Check if .env.local exists
-if [ ! -f .env.local ]; then
-    echo "❌ .env.local file not found!"
-    echo "Run: ./generate-env.sh to create it"
+# Load environment variables
+if [ -f ".env.local" ]; then
+    source .env.local
+    echo "✅ .env.local loaded"
+else
+    echo "❌ .env.local not found!"
     exit 1
 fi
 
-echo "✅ .env.local file exists"
 echo ""
-echo "Environment variables:"
-echo "---"
+echo "📋 Current Environment Variables:"
+echo "NEXT_PUBLIC_COGNITO_USER_POOL_ID: ${NEXT_PUBLIC_COGNITO_USER_POOL_ID:-❌ NOT SET}"
+echo "NEXT_PUBLIC_COGNITO_CLIENT_ID: ${NEXT_PUBLIC_COGNITO_CLIENT_ID:-❌ NOT SET}"
+echo "NEXT_PUBLIC_COGNITO_REGION: ${NEXT_PUBLIC_COGNITO_REGION:-❌ NOT SET}"
+echo "NEXT_PUBLIC_API_GATEWAY_URL: ${NEXT_PUBLIC_API_GATEWAY_URL:-❌ NOT SET}"
 
-# Source and display env vars
-source .env.local 2>/dev/null || true
+echo ""
+echo "🔗 Testing API connectivity..."
 
-vars=(
-    "NEXT_PUBLIC_COGNITO_USER_POOL_ID"
-    "NEXT_PUBLIC_COGNITO_CLIENT_ID"
-    "NEXT_PUBLIC_COGNITO_REGION"
-    "NEXT_PUBLIC_API_GATEWAY_URL"
-)
+# Test API connectivity
+if command -v curl > /dev/null; then
+    echo "Testing: $NEXT_PUBLIC_API_GATEWAY_URL/notes/get"
 
-all_set=true
-for var in "${vars[@]}"; do
-    value="${!var}"
-    if [ -z "$value" ]; then
-        echo "❌ $var: NOT SET"
-        all_set=false
+    # Test GET endpoint
+    response=$(timeout 10 curl -s -w "%{http_code}" "$NEXT_PUBLIC_API_GATEWAY_URL/notes/get" -o /tmp/api_response.txt 2>/dev/null)
+
+    if [ $? -eq 0 ]; then
+        echo "✅ API is reachable"
+        echo "📡 HTTP Status: $response"
+        echo "📄 Response body:"
+        cat /tmp/api_response.txt
+        rm -f /tmp/api_response.txt
+
+        if [ "$response" = "401" ] || [ "$response" = "403" ]; then
+            echo "✅ API correctly requires authentication"
+        else
+            echo "⚠️  Unexpected status code (should be 401 or 403 without auth)"
+        fi
     else
-        # Mask the value for security
-        masked="${value:0:4}...${value: -4}"
-        echo "✅ $var: $masked"
+        echo "❌ Cannot reach API endpoint"
+        echo "Check if the API Gateway URL is correct"
     fi
-done
-
-echo ""
-if [ "$all_set" = true ]; then
-    echo "✅ All environment variables are configured correctly!"
-    echo ""
-    echo "You can now run: npm run dev"
 else
-    echo "❌ Some environment variables are missing!"
-    echo "Run: ./generate-env.sh to regenerate .env.local"
+    echo "⚠️  curl not available, skipping API test"
 fi
 
+echo ""
+echo "✅ Environment check complete!"
+echo "If all variables are set and API is reachable, you can proceed with testing."

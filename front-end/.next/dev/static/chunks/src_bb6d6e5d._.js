@@ -138,7 +138,13 @@ function AuthProvider({ children }) {
             return;
         }
         try {
+            console.log('🔍 Checking auth state...');
             const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$auth$2f$dist$2f$esm$2f$providers$2f$cognito$2f$apis$2f$getCurrentUser$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getCurrentUser"])();
+            console.log('✅ User found:', {
+                userId: user.userId,
+                username: user.username,
+                signInDetails: user.signInDetails
+            });
             const userData = {
                 id: user.userId,
                 email: user.signInDetails?.loginId || user.username || '',
@@ -150,8 +156,9 @@ function AuthProvider({ children }) {
                 loading: false,
                 isAuthenticated: true
             });
+            console.log('✅ Auth state updated - user is authenticated');
         } catch (error) {
-            console.log('No authenticated user found:', error);
+            console.log('❌ No authenticated user found:', error);
             setState({
                 user: null,
                 loading: false,
@@ -188,6 +195,7 @@ function AuthProvider({ children }) {
         }
     };
     const refreshAuth = async ()=>{
+        console.log('🔄 Refreshing auth state...');
         setState((prev)=>({
                 ...prev,
                 loading: true
@@ -204,7 +212,7 @@ function AuthProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/src/contexts/AuthContext.tsx",
-        lineNumber: 101,
+        lineNumber: 109,
         columnNumber: 10
     }, this);
 }
@@ -213,11 +221,11 @@ _c = AuthProvider;
 function useAuth() {
     _s1();
     const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(1);
-    if ($[0] !== "fdfcea0b36ad5b1c7311274e10c1e4693536f35ffd8433323dd354ad49b43306") {
+    if ($[0] !== "1ec193efd933167d2f4fe76250c54c007fc786620a8c256a931f9f2692b65acb") {
         for(let $i = 0; $i < 1; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "fdfcea0b36ad5b1c7311274e10c1e4693536f35ffd8433323dd354ad49b43306";
+        $[0] = "1ec193efd933167d2f4fe76250c54c007fc786620a8c256a931f9f2692b65acb";
     }
     const context = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useContext"])(AuthContext);
     if (context === undefined) {

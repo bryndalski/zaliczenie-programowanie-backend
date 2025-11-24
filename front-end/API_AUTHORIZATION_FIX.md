@@ -1,151 +1,159 @@
-# Rozwiązanie problemu "Unauthorized" w API Gateway
+# API Authorization Fix - Front-end nie wysyła Bearer Token
 
-## Problem
-Otrzymujesz błąd `NetworkError when attempting to fetch resource` oraz `401 Unauthorized` podczas wywołań API.
+## 🎯 Problem
+Front-end aplikacji nie wysyła tokenu Bearer w headerze Authorization, co powoduje błąd 401 Unauthorized z API.
 
-## Przyczyna
-Były **dwa problemy**:
+## 🔍 Główne przyczyny
 
-### 1. Użycie Access Token zamiast ID Token
-AWS API Gateway z **Cognito User Pool Authorizer** wymaga **ID Token**, a nie Access Token.
+### 1. **Token nie jest dostępny po logowaniu**
+- Amplify nie został właściwie skonfigurowany
+- Sesja użytkownika nie jest w pełni utworzona
+- Problem z localStorage lub session storage
 
-**Przed:**
-```typescript
-const token = session.tokens?.accessToken?.toString();
-```
+### 2. **Token jest pobrany, ale nie jest wysyłany**
+- Błąd w funkcji `getAuthHeader()`
+- Timing issues - request wysyłany zanim token jest gotowy
+- Błędna implementacja fetch requests
 
-**Po:**
-```typescript
-const token = session.tokens?.idToken?.toString();
-```
+### 3. **Token jest wysyłany, ale w złym formacie**
+- Używany access token zamiast ID token
+- Niepoprawny format Authorization header
+- Problem z encoding tokenu
 
-### 2. Brak `identity_source` w konfiguracji authorizera
-Authorizer musi wiedzieć, skąd pobrać token JWT.
+## ✅ Rozwiązania krok po kroku
 
-**Przed:**
-```terraform
-resource "aws_api_gateway_authorizer" "cognito" {
-  name          = "..."
-  type          = "COGNITO_USER_POOLS"
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-  provider_arns = [var.cognito_user_pool_arn]
-}
-```
-
-**Po:**
-```terraform
-resource "aws_api_gateway_authorizer" "cognito" {
-  name            = "..."
-  type            = "COGNITO_USER_POOLS"
-  rest_api_id     = aws_api_gateway_rest_api.api.id
-  provider_arns   = [var.cognito_user_pool_arn]
-  identity_source = "method.request.header.Authorization"  # ← DODANE
-}
-```
-
-## Różnice między tokenami
-
-### Access Token
-- Używany do **autoryzacji dostępu do zasobów**
-- Zawiera **scopes** i **permissions**
-- Krótszy czas życia (domyślnie 60 minut)
-- Używany w **OAuth 2.0** flow
-
-### ID Token
-- Używany do **identyfikacji użytkownika**
-- Zawiera **user claims** (sub, email, username, itp.)
-- JWT z informacjami o użytkowniku
-- **Wymagany przez AWS API Gateway Cognito User Pool Authorizer**
-
-## Jak działa flow
-
-1. **Użytkownik loguje się** → AWS Cognito zwraca tokeny (ID, Access, Refresh)
-2. **Frontend wysyła request** z `Authorization: Bearer {ID_TOKEN}`
-3. **API Gateway** odbiera request i wywołuje authorizer
-4. **Cognito Authorizer** waliduje ID Token z User Pool
-5. **Lambda** otrzymuje `requestContext.authorizer.claims` z danymi użytkownika
-6. **Middleware** wyciąga `userId` z `claims.sub`
-
-## Kroki do zastosowania poprawki
-
-### 1. Zaktualizuj front-end
+### Krok 1: Sprawdź podstawową konfigurację
 ```bash
 cd front-end
-# Plik już został zaktualizowany - używa idToken zamiast accessToken
+./check-env.sh
 ```
 
-### 2. Zaktualizuj Terraform
+### Krok 2: Uruchom pełną naprawę
 ```bash
-cd ../terraform
-terraform plan   # Sprawdź zmiany
-terraform apply  # Zastosuj zmiany
+./fix-auth.sh
 ```
 
-### 3. Zrestartuj aplikację Next.js
-```bash
-cd ../front-end
-npm run dev
-```
+### Krok 3: Test z debuggerem
+1. Start aplikacji: `npm run dev`
+2. Otwórz http://localhost:3000
+3. Zaloguj się 
+4. Użyj AuthDebugger widget (prawy dolny róg)
+5. Sprawdź console logs
 
-### 4. Przetestuj
-1. Zaloguj się ponownie (aby mieć świeże tokeny)
-2. Spróbuj pobrać notatki
-3. Spróbuj utworzyć notatkę
+### Krok 4: Sprawdź specyficzne problemy
 
-## Debugowanie
-
-### Sprawdź czy masz ID Token
-Otwórz DevTools Console i wykonaj:
+#### A. Brak tokenu w localStorage
 ```javascript
-import { fetchAuthSession } from 'aws-amplify/auth';
-const session = await fetchAuthSession();
-console.log('ID Token:', session.tokens?.idToken?.toString());
-console.log('Access Token:', session.tokens?.accessToken?.toString());
+// W browser console:
+Object.keys(localStorage).filter(key => key.includes('Cognito'))
 ```
 
-### Sprawdź zawartość ID Token
-Wklej token do https://jwt.io i sprawdź:
-- `sub` - user ID (UUID)
-- `cognito:username` - nazwa użytkownika
-- `email` - email użytkownika
-- `email_verified` - czy email jest zweryfikowany
+Jeśli puste:
+1. Wyloguj się i wyczyść localStorage
+2. Zaloguj ponownie
+3. Sprawdź ponownie
 
-### Sprawdź response z API
+#### B. Token jest, ale wygasły
 ```javascript
-const headers = { 
-  'Authorization': `Bearer ${idToken}`,
-  'Content-Type': 'application/json'
-};
-const response = await fetch('API_URL/notes/get', { headers });
-console.log('Status:', response.status);
-console.log('Response:', await response.json());
+// W browser console sprawdź datę wygaśnięcia
+const token = localStorage.getItem('...idToken...')
+const payload = JSON.parse(atob(token.split('.')[1]))
+new Date(payload.exp * 1000) // Data wygaśnięcia
 ```
 
-## Potencjalne problemy
+#### C. Request nie zawiera Authorization header
+1. Otwórz Developer Tools → Network
+2. Wykonaj żądanie do API
+3. Sprawdź Request Headers
+4. Sprawdź czy jest `Authorization: Bearer ...`
 
-### Token wygasł
-- ID Token jest ważny przez 60 minut (domyślnie)
-- Rozwiązanie: Wyloguj się i zaloguj ponownie
-- Lub użyj refresh token (automatyczne w Amplify)
+## 🔧 Zaawansowane debugowanie
 
-### Zły User Pool
-- Sprawdź czy `NEXT_PUBLIC_COGNITO_USER_POOL_ID` w `.env.local` jest poprawny
-- Sprawdź czy authorizer w Terraform używa tego samego User Pool ARN
-
-### CORS
-- Jeśli widzisz błędy CORS, sprawdź konfigurację CORS w Terraform
-- API Gateway musi zwracać odpowiednie nagłówki `Access-Control-Allow-*`
-
-### Brak deploy API Gateway
-Po zmianach w Terraform musisz **zredeploy'ować API Gateway**:
+### Sprawdź middleware w Lambda
 ```bash
-terraform apply
-# To automatycznie utworzy nowy deployment
+aws logs tail /aws/lambda/default-notes-app-get_notes --follow
 ```
 
-## Dodatkowe zasoby
+### Test bezpośrednio z tokenem
+```bash
+# Pobierz token z browser console i test:
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  "https://io3jsoifpi.execute-api.eu-central-1.amazonaws.com/default/notes/get"
+```
 
-- [AWS API Gateway Authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-use-lambda-authorizer.html)
-- [Cognito User Pool Tokens](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-with-identity-providers.html)
-- [AWS Amplify Auth](https://docs.amplify.aws/javascript/build-a-backend/auth/)
+### Sprawdź API Gateway logs
+```bash
+aws logs tail API-Gateway-Execution-Logs --follow
+```
 
+## 🛠️ Najczęstsze naprawy
+
+### 1. Restart całej sesji
+```javascript
+// W browser console:
+localStorage.clear()
+sessionStorage.clear()
+// Następnie odśwież stronę i zaloguj ponownie
+```
+
+### 2. Force refresh sesji
+```javascript
+// W komponencie React:
+const session = await fetchAuthSession({ forceRefresh: true })
+```
+
+### 3. Sprawdź timing
+Upewnij się że request jest wysyłany dopiero po pełnej inicjalizacji Amplify:
+```javascript
+// Poczekaj na konfigurację
+await new Promise(resolve => setTimeout(resolve, 1000))
+const headers = await getAuthHeader()
+```
+
+## 📋 Checklist diagnostyczny
+
+- [ ] Environment variables są poprawnie ustawione
+- [ ] API odpowiada 401/403 bez autoryzacji  
+- [ ] CORS jest poprawnie skonfigurowany
+- [ ] Amplify jest skonfigurowany w AuthContext
+- [ ] Użytkownik może się zalogować bez błędów
+- [ ] localStorage zawiera tokeny Cognito po logowaniu
+- [ ] AuthDebugger pokazuje poprawne dane
+- [ ] Network tab pokazuje Authorization header w requestach
+
+## 🚨 Jeśli nic nie pomaga
+
+1. **Sprawdź backend**:
+   ```bash
+   cd terraform
+   terraform plan
+   # Sprawdź czy authorizer_id jest poprawnie skonfigurowany
+   ```
+
+2. **Przebuduj infrastructure**:
+   ```bash
+   terraform destroy -auto-approve
+   terraform apply -auto-approve
+   ```
+
+3. **Sprawdź User Pool w AWS Console**:
+   - Czy User Pool istnieje
+   - Czy App Client ma poprawne ustawienia
+   - Czy domeny są poprawnie skonfigurowane
+
+4. **Test z nowym użytkownikiem**:
+   - Stwórz nowego użytkownika
+   - Przetestuj cały flow od początku
+
+## 📞 Support
+
+Jeśli problem nadal występuje, zbierz:
+1. Output z `./check-env.sh`
+2. Output z `./fix-auth.sh` 
+3. Screenshots z Network tab
+4. Browser console logs
+5. `terraform output`
+
+---
+
+**Ostatnia aktualizacja:** $(date '+%Y-%m-%d %H:%M:%S')

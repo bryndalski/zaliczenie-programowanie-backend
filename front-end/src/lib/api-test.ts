@@ -14,8 +14,8 @@ export async function debugAuth() {
       signInDetails: user.signInDetails
     });
 
-    // Get auth session
-    const session = await fetchAuthSession();
+    // Get auth session with force refresh
+    const session = await fetchAuthSession({ forceRefresh: true });
     console.log('✅ Auth session:', {
       credentials: session.credentials ? 'Present' : 'Missing',
       identityId: session.identityId,

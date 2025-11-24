@@ -42,7 +42,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
+      console.log('🔍 Checking auth state...');
       const user = await getCurrentUser();
+
+      console.log('✅ User found:', {
+        userId: user.userId,
+        username: user.username,
+        signInDetails: user.signInDetails
+      });
 
       const userData: User = {
         id: user.userId,
@@ -56,8 +63,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading: false,
         isAuthenticated: true,
       });
+
+      console.log('✅ Auth state updated - user is authenticated');
     } catch (error) {
-      console.log('No authenticated user found:', error);
+      console.log('❌ No authenticated user found:', error);
       setState({
         user: null,
         loading: false,
@@ -93,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshAuth = async () => {
+    console.log('🔄 Refreshing auth state...');
     setState(prev => ({ ...prev, loading: true }));
     await checkAuthState();
   };

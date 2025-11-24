@@ -69,6 +69,281 @@ function ProtectedRoute({ children, fallback }) {
     }, void 0, false);
 }
 }),
+"[project]/src/lib/api-test.ts [app-ssr] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "debugAuth",
+    ()=>debugAuth,
+    "testApiCall",
+    ()=>testApiCall
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$fetchAuthSession$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@aws-amplify/core/dist/esm/singleton/apis/fetchAuthSession.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$auth$2f$dist$2f$esm$2f$providers$2f$cognito$2f$apis$2f$getCurrentUser$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@aws-amplify/auth/dist/esm/providers/cognito/apis/getCurrentUser.mjs [app-ssr] (ecmascript)");
+'use client';
+;
+async function debugAuth() {
+    try {
+        console.log('🔍 Starting auth debug...');
+        // Check if user is authenticated
+        const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$auth$2f$dist$2f$esm$2f$providers$2f$cognito$2f$apis$2f$getCurrentUser$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getCurrentUser"])();
+        console.log('✅ Current user:', {
+            userId: user.userId,
+            username: user.username,
+            signInDetails: user.signInDetails
+        });
+        // Get auth session with force refresh
+        const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$fetchAuthSession$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["fetchAuthSession"])({
+            forceRefresh: true
+        });
+        console.log('✅ Auth session:', {
+            credentials: session.credentials ? 'Present' : 'Missing',
+            identityId: session.identityId,
+            tokens: session.tokens ? {
+                accessToken: session.tokens.accessToken ? 'Present' : 'Missing',
+                idToken: session.tokens.idToken ? 'Present' : 'Missing',
+                refreshToken: session.tokens.refreshToken ? 'Present' : 'Missing'
+            } : 'Missing'
+        });
+        // Check token details
+        if (session.tokens?.idToken) {
+            const idToken = session.tokens.idToken.toString();
+            console.log('🔑 ID Token (first 50 chars):', idToken.substring(0, 50));
+            // Decode token payload (without verification for debugging)
+            try {
+                const payload = JSON.parse(atob(idToken.split('.')[1]));
+                console.log('🔓 Token payload:', {
+                    iss: payload.iss,
+                    sub: payload.sub,
+                    aud: payload.aud,
+                    exp: new Date(payload.exp * 1000).toISOString(),
+                    iat: new Date(payload.iat * 1000).toISOString(),
+                    token_use: payload.token_use,
+                    email: payload.email
+                });
+            } catch (e) {
+                console.error('❌ Failed to decode token:', e);
+            }
+        }
+        return {
+            isAuthenticated: true,
+            token: session.tokens?.idToken?.toString(),
+            user
+        };
+    } catch (error) {
+        console.error('❌ Auth debug failed:', error);
+        return {
+            isAuthenticated: false,
+            error
+        };
+    }
+}
+async function testApiCall() {
+    try {
+        console.log('🧪 Testing API call...');
+        const authResult = await debugAuth();
+        if (!authResult.isAuthenticated) {
+            throw new Error('Not authenticated');
+        }
+        const apiUrl = ("TURBOPACK compile-time value", "https://io3jsoifpi.execute-api.eu-central-1.amazonaws.com/default");
+        if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+        ;
+        const response = await fetch(`${apiUrl}/notes/get`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authResult.token}`
+            }
+        });
+        console.log('📡 API Response:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries())
+        });
+        const text = await response.text();
+        console.log('📄 Response body:', text);
+        if (!response.ok) {
+            throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+        }
+        return JSON.parse(text);
+    } catch (error) {
+        console.error('❌ API test failed:', error);
+        throw error;
+    }
+}
+}),
+"[project]/src/components/auth/AuthDebugger.tsx [app-ssr] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>AuthDebugger
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2d$test$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/api-test.ts [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/contexts/AuthContext.tsx [app-ssr] (ecmascript)");
+'use client';
+;
+;
+;
+;
+function AuthDebugger() {
+    const [debugInfo, setDebugInfo] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const { user, isAuthenticated } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
+    const handleDebugAuth = async ()=>{
+        setLoading(true);
+        setDebugInfo('');
+        try {
+            console.clear();
+            console.log('🔍 Starting auth debug...');
+            const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2d$test$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["debugAuth"])();
+            setDebugInfo(JSON.stringify(result, null, 2));
+        } catch (error) {
+            setDebugInfo(`Error: ${error}`);
+        } finally{
+            setLoading(false);
+        }
+    };
+    const handleTestApi = async ()=>{
+        setLoading(true);
+        setDebugInfo('');
+        try {
+            console.clear();
+            console.log('🧪 Testing API call...');
+            const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2d$test$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["testApiCall"])();
+            setDebugInfo(JSON.stringify(result, null, 2));
+        } catch (error) {
+            setDebugInfo(`API Error: ${error}`);
+        } finally{
+            setLoading(false);
+        }
+    };
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        className: "fixed bottom-4 right-4 bg-white border-2 border-blue-500 rounded-lg p-4 shadow-lg max-w-sm",
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                className: "font-bold text-lg mb-3",
+                children: "Auth Debugger"
+            }, void 0, false, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 48,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "mb-3 text-sm",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                children: "Auth Status:"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                                lineNumber: 51,
+                                columnNumber: 12
+                            }, this),
+                            " ",
+                            isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated'
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 51,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                children: "User:"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                                lineNumber: 52,
+                                columnNumber: 12
+                            }, this),
+                            " ",
+                            user?.email || 'None'
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 52,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 50,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "space-y-2",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: handleDebugAuth,
+                        disabled: loading,
+                        className: "w-full px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 text-sm",
+                        children: loading ? 'Testing...' : 'Debug Auth'
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 56,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: handleTestApi,
+                        disabled: loading || !isAuthenticated,
+                        className: "w-full px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 text-sm",
+                        children: loading ? 'Testing...' : 'Test API Call'
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 64,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 55,
+                columnNumber: 7
+            }, this),
+            debugInfo && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "mt-3",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        className: "text-xs font-semibold mb-1",
+                        children: "Debug Info:"
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 75,
+                        columnNumber: 11
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("pre", {
+                        className: "text-xs bg-gray-100 p-2 rounded max-h-40 overflow-auto",
+                        children: debugInfo
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                        lineNumber: 76,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 74,
+                columnNumber: 9
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                className: "text-xs text-gray-500 mt-2",
+                children: "Check browser console for detailed logs"
+            }, void 0, false, {
+                fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+                lineNumber: 82,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/src/components/auth/AuthDebugger.tsx",
+        lineNumber: 47,
+        columnNumber: 5
+    }, this);
+}
+}),
 "[project]/src/hooks/useNotes.ts [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
@@ -84,24 +359,71 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amp
 const API_BASE = (("TURBOPACK compile-time value", "https://io3jsoifpi.execute-api.eu-central-1.amazonaws.com/default") || '').replace(/\/$/, '');
 async function getAuthHeader() {
     try {
-        const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$fetchAuthSession$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["fetchAuthSession"])();
-        // AWS API Gateway Cognito User Pool authorizer requires ID token, not access token
-        const token = session.tokens?.idToken?.toString();
-        if (!token) {
-            console.warn('No ID token available');
-            return {
-                'Content-Type': 'application/json'
-            };
+        console.log('🔐 Getting auth session...');
+        // Try multiple times to get a valid session
+        let session;
+        let attempts = 0;
+        const maxAttempts = 3;
+        while(attempts < maxAttempts){
+            try {
+                // Force refresh to ensure we have the latest tokens
+                session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$aws$2d$amplify$2f$core$2f$dist$2f$esm$2f$singleton$2f$apis$2f$fetchAuthSession$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["fetchAuthSession"])({
+                    forceRefresh: attempts > 0
+                });
+                if (session.tokens?.idToken) {
+                    break; // We got a token, exit the loop
+                }
+                console.warn(`⚠️ No tokens in session, attempt ${attempts + 1}/${maxAttempts}`);
+                attempts++;
+                if (attempts < maxAttempts) {
+                    // Wait a bit before retrying
+                    await new Promise((resolve)=>setTimeout(resolve, 500));
+                }
+            } catch (sessionError) {
+                console.error(`❌ Session error on attempt ${attempts + 1}:`, sessionError);
+                attempts++;
+                if (attempts < maxAttempts) {
+                    await new Promise((resolve)=>setTimeout(resolve, 500));
+                }
+            }
+        }
+        if (!session || !session.tokens?.idToken) {
+            console.error('❌ Failed to get valid session after all attempts');
+            throw new Error('Authentication session not available. Please log in again.');
+        }
+        console.log('📊 Auth session:', {
+            credentials: session.credentials ? 'Present' : 'Missing',
+            identityId: session.identityId ? 'Present' : 'Missing',
+            tokens: session.tokens ? 'Present' : 'Missing'
+        });
+        const token = session.tokens.idToken.toString();
+        console.log('✅ ID token found (first 20 chars):', token.substring(0, 20) + '...');
+        // Decode token to check expiry (without verification)
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const exp = new Date(payload.exp * 1000);
+            const now = new Date();
+            console.log('🔍 Token details:', {
+                expires: exp.toISOString(),
+                isExpired: now > exp,
+                user: payload.sub,
+                email: payload.email,
+                timeUntilExpiry: Math.max(0, Math.floor((exp.getTime() - now.getTime()) / 1000 / 60)) + ' minutes'
+            });
+            if (now > exp) {
+                console.warn('⚠️ Token is expired');
+                throw new Error('Authentication token has expired. Please log in again.');
+            }
+        } catch (decodeError) {
+            console.warn('⚠️ Could not decode token:', decodeError);
         }
         return {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         };
     } catch (error) {
-        console.error('Error getting auth token:', error);
-        return {
-            'Content-Type': 'application/json'
-        };
+        console.error('❌ Error getting auth token:', error);
+        throw error;
     }
 }
 function useNotes() {
@@ -118,18 +440,30 @@ function useNotes() {
         setLoading(true);
         setError(null);
         try {
+            console.log('🚀 Fetching notes...');
             const headers = await getAuthHeader();
+            console.log('📡 Making request to:', `${API_BASE}/notes/get`);
+            console.log('📋 Headers:', headers);
             const res = await fetch(`${API_BASE}/notes/get`, {
+                method: 'GET',
                 headers
             });
+            console.log('📥 Response status:', res.status, res.statusText);
             if (!res.ok) {
-                throw new Error(`Failed to fetch notes: ${res.status}`);
+                const responseText = await res.text();
+                console.error('❌ API Error Response:', responseText);
+                if (res.status === 401) {
+                    throw new Error('Unauthorized: Please log in again');
+                }
+                throw new Error(`Failed to fetch notes: ${res.status} ${res.statusText}`);
             }
             const json = await res.json();
+            console.log('✅ Notes fetched successfully:', json);
             const incoming = Array.isArray(json?.notes) ? json.notes : [];
             setNotes(incoming);
         } catch (e) {
             const message = e instanceof Error ? e.message : 'Failed to load notes';
+            console.error('❌ Fetch notes error:', message);
             setError(message);
         } finally{
             setLoading(false);
@@ -982,6 +1316,7 @@ __turbopack_context__.s([
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$auth$2f$ProtectedRoute$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/auth/ProtectedRoute.tsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$auth$2f$AuthDebugger$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/auth/AuthDebugger.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/contexts/AuthContext.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$log$2d$out$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__LogOut$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/log-out.js [app-ssr] (ecmascript) <export default as LogOut>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__User$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/user.js [app-ssr] (ecmascript) <export default as User>");
@@ -995,6 +1330,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$notes$2
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$notes$2f$EditNoteModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/notes/EditNoteModal.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$notes$2f$DeleteConfirmModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/notes/DeleteConfirmModal.tsx [app-ssr] (ecmascript)");
 'use client';
+;
 ;
 ;
 ;
@@ -1063,7 +1399,7 @@ function DashboardPage() {
                                             children: "My Notes"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/dashboard/page.tsx",
-                                            lineNumber: 65,
+                                            lineNumber: 66,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1075,18 +1411,18 @@ function DashboardPage() {
                                                 className: `h-5 w-5 ${loading ? 'animate-spin' : ''}`
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                                lineNumber: 72,
+                                                lineNumber: 73,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/dashboard/page.tsx",
-                                            lineNumber: 66,
+                                            lineNumber: 67,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/dashboard/page.tsx",
-                                    lineNumber: 64,
+                                    lineNumber: 65,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1099,7 +1435,7 @@ function DashboardPage() {
                                                     className: "h-4 w-4 text-gray-600"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/dashboard/page.tsx",
-                                                    lineNumber: 78,
+                                                    lineNumber: 79,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1107,13 +1443,13 @@ function DashboardPage() {
                                                     children: user?.email
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/dashboard/page.tsx",
-                                                    lineNumber: 79,
+                                                    lineNumber: 80,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/dashboard/page.tsx",
-                                            lineNumber: 77,
+                                            lineNumber: 78,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1124,7 +1460,7 @@ function DashboardPage() {
                                                     className: "h-4 w-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/dashboard/page.tsx",
-                                                    lineNumber: 85,
+                                                    lineNumber: 86,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1132,35 +1468,35 @@ function DashboardPage() {
                                                     children: "Sign Out"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/dashboard/page.tsx",
-                                                    lineNumber: 86,
+                                                    lineNumber: 87,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/dashboard/page.tsx",
-                                            lineNumber: 81,
+                                            lineNumber: 82,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/dashboard/page.tsx",
-                                    lineNumber: 76,
+                                    lineNumber: 77,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/dashboard/page.tsx",
-                            lineNumber: 63,
+                            lineNumber: 64,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/dashboard/page.tsx",
-                        lineNumber: 62,
+                        lineNumber: 63,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 61,
+                    lineNumber: 62,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -1180,7 +1516,7 @@ function DashboardPage() {
                                                     className: "h-5 w-5"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/dashboard/page.tsx",
-                                                    lineNumber: 100,
+                                                    lineNumber: 101,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1192,18 +1528,18 @@ function DashboardPage() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/dashboard/page.tsx",
-                                                    lineNumber: 101,
+                                                    lineNumber: 102,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/dashboard/page.tsx",
-                                            lineNumber: 99,
+                                            lineNumber: 100,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 98,
+                                        lineNumber: 99,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1214,26 +1550,26 @@ function DashboardPage() {
                                                 className: "h-5 w-5"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                                lineNumber: 111,
+                                                lineNumber: 112,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: "New Note"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                                lineNumber: 112,
+                                                lineNumber: 113,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 107,
+                                        lineNumber: 108,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                lineNumber: 97,
+                                lineNumber: 98,
                                 columnNumber: 13
                             }, this),
                             error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1243,7 +1579,7 @@ function DashboardPage() {
                                         className: "h-5 w-5 text-red-600 mt-0.5"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 119,
+                                        lineNumber: 120,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1254,7 +1590,7 @@ function DashboardPage() {
                                                 children: "Error"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                                lineNumber: 121,
+                                                lineNumber: 122,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1262,19 +1598,19 @@ function DashboardPage() {
                                                 children: error
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                                lineNumber: 122,
+                                                lineNumber: 123,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 120,
+                                        lineNumber: 121,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                lineNumber: 118,
+                                lineNumber: 119,
                                 columnNumber: 15
                             }, this),
                             loading && notes.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1284,7 +1620,7 @@ function DashboardPage() {
                                         className: "h-12 w-12 text-gray-400 animate-spin mx-auto mb-4"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 130,
+                                        lineNumber: 131,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1292,13 +1628,13 @@ function DashboardPage() {
                                         children: "Loading your notes..."
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 131,
+                                        lineNumber: 132,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                lineNumber: 129,
+                                lineNumber: 130,
                                 columnNumber: 15
                             }, this),
                             !loading && notes.length === 0 && !error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1308,7 +1644,7 @@ function DashboardPage() {
                                         className: "h-16 w-16 text-gray-400 mx-auto mb-4"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 138,
+                                        lineNumber: 139,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -1316,7 +1652,7 @@ function DashboardPage() {
                                         children: "No notes yet"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 139,
+                                        lineNumber: 140,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1324,7 +1660,7 @@ function DashboardPage() {
                                         children: "Create your first note to get started!"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 140,
+                                        lineNumber: 141,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1335,20 +1671,20 @@ function DashboardPage() {
                                                 className: "h-5 w-5"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                                lineNumber: 145,
+                                                lineNumber: 146,
                                                 columnNumber: 19
                                             }, this),
                                             "Create Note"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 141,
+                                        lineNumber: 142,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                lineNumber: 137,
+                                lineNumber: 138,
                                 columnNumber: 15
                             }, this),
                             notes.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1359,23 +1695,23 @@ function DashboardPage() {
                                         onDelete: handleDeleteClick
                                     }, note.noteId, false, {
                                         fileName: "[project]/src/app/dashboard/page.tsx",
-                                        lineNumber: 155,
+                                        lineNumber: 156,
                                         columnNumber: 19
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/page.tsx",
-                                lineNumber: 153,
+                                lineNumber: 154,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/dashboard/page.tsx",
-                        lineNumber: 95,
+                        lineNumber: 96,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 94,
+                    lineNumber: 95,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$notes$2f$CreateNoteModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1384,7 +1720,7 @@ function DashboardPage() {
                     onSubmit: addNote
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 168,
+                    lineNumber: 169,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$notes$2f$EditNoteModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1397,7 +1733,7 @@ function DashboardPage() {
                     onSubmit: updateNote
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 174,
+                    lineNumber: 175,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$notes$2f$DeleteConfirmModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1411,22 +1747,27 @@ function DashboardPage() {
                     loading: actionLoading
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/page.tsx",
-                    lineNumber: 184,
+                    lineNumber: 185,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$auth$2f$AuthDebugger$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
+                    fileName: "[project]/src/app/dashboard/page.tsx",
+                    lineNumber: 197,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/dashboard/page.tsx",
-            lineNumber: 59,
+            lineNumber: 60,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/dashboard/page.tsx",
-        lineNumber: 58,
+        lineNumber: 59,
         columnNumber: 5
     }, this);
 }
 }),
 ];
 
-//# sourceMappingURL=%5Broot-of-the-server%5D__bdfc8d64._.js.map
+//# sourceMappingURL=%5Broot-of-the-server%5D__df623354._.js.map
