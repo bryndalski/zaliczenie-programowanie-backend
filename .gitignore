@@ -27,7 +27,7 @@ out/
 .env.production.local
 
 # Next.js
-/.next/
+.next/
 next-env.d.ts
 *.tsbuildinfo
 
