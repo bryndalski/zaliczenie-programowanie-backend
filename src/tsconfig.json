@@ -15,6 +15,7 @@
   },
   "include": [
     "./lambdas/**/*.ts",
+    "./entities/**/*.ts",
     "./layers/**/*.ts",
     "./types/**/*.d.ts"
   ],

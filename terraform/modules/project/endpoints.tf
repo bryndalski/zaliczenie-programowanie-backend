@@ -16,7 +16,7 @@ module "endpoints" {
           resource = module.dynamo_db.table_arn
         },
       ]
-      entry = "src/lambdas/add_note"
+      entry = "src/dist/lambdas/add_note"
     }
 
     get_notes = {
@@ -32,7 +32,7 @@ module "endpoints" {
           resource = module.dynamo_db.table_arn
         },
       ]
-      entry = "src/lambdas/get_notes"
+      entry = "src/dist/lambdas/get_notes"
     }
 
     update_note = {
@@ -52,7 +52,7 @@ module "endpoints" {
           resource = module.dynamo_db.table_arn
         },
       ]
-      entry = "src/lambdas/update_note"
+      entry = "src/dist/lambdas/update_note"
     }
 
     delete_note = {
@@ -72,7 +72,7 @@ module "endpoints" {
           resource = module.dynamo_db.table_arn
         },
       ]
-      entry = "src/lambdas/delete_note"
+      entry = "src/dist/lambdas/delete_note"
     }
   }
 

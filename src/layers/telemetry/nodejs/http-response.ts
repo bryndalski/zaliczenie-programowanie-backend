@@ -92,3 +92,38 @@ export const noContentResponse = (): APIGatewayProxyResult => {
   };
 };
 
+// HTTP Error creation functions
+export class HttpError extends Error {
+  statusCode: number;
+  details?: any;
+
+  constructor(statusCode: number, message: string, details?: any) {
+    super(message);
+    this.name = 'HttpError';
+    this.statusCode = statusCode;
+    this.details = details;
+  }
+}
+
+export const createHttpError = {
+  badRequest: (message: string = 'Bad Request', details?: any): HttpError =>
+    new HttpError(400, message, details),
+
+  unauthorized: (message: string = 'Unauthorized', details?: any): HttpError =>
+    new HttpError(401, message, details),
+
+  forbidden: (message: string = 'Forbidden', details?: any): HttpError =>
+    new HttpError(403, message, details),
+
+  notFound: (message: string = 'Not Found', details?: any): HttpError =>
+    new HttpError(404, message, details),
+
+  conflict: (message: string = 'Conflict', details?: any): HttpError =>
+    new HttpError(409, message, details),
+
+  unprocessableEntity: (message: string = 'Unprocessable Entity', details?: any): HttpError =>
+    new HttpError(422, message, details),
+
+  internalServerError: (message: string = 'Internal Server Error', details?: any): HttpError =>
+    new HttpError(500, message, details),
+};

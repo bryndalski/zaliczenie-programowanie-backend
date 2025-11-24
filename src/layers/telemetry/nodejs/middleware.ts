@@ -1,16 +1,18 @@
 import middy from '@middy/core';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import { Logger, Metrics } from './telemetry';
 
-export interface MiddyContext {
+export interface MiddyContext extends Context {
   logger: Logger;
   metrics: Metrics;
   startTime: number;
+  userId: string;
 }
 
 /**
  * Logger middleware - adds logger instance to context
  */
-export const loggerMiddleware = (): middy.MiddlewareObj => {
+export const loggerMiddleware = (): middy.MiddlewareObj<APIGatewayProxyEvent, APIGatewayProxyResult, Error, MiddyContext> => {
   return {
     before: async (request) => {
       const logger = new Logger({
@@ -24,20 +26,20 @@ export const loggerMiddleware = (): middy.MiddlewareObj => {
         logger.setContext({ userId });
       }
 
-      request.context.logger = logger;
+      (request.context as any).logger = logger;
       logger.info('Request started', {
         httpMethod: request.event.httpMethod,
         path: request.event.path,
       });
     },
     after: async (request) => {
-      const logger = request.context.logger as Logger;
+      const logger = (request.context as any).logger as Logger;
       logger.info('Request completed successfully', {
         statusCode: request.response?.statusCode,
       });
     },
     onError: async (request) => {
-      const logger = request.context.logger as Logger;
+      const logger = (request.context as any).logger as Logger;
       logger.error('Request failed', request.error);
     },
   };
@@ -46,23 +48,23 @@ export const loggerMiddleware = (): middy.MiddlewareObj => {
 /**
  * Metrics middleware - adds metrics instance to context and tracks performance
  */
-export const metricsMiddleware = (): middy.MiddlewareObj => {
+export const metricsMiddleware = (): middy.MiddlewareObj<APIGatewayProxyEvent, APIGatewayProxyResult, Error, MiddyContext> => {
   return {
     before: async (request) => {
       const metrics = new Metrics();
-      request.context.metrics = metrics;
-      request.context.startTime = Date.now();
+      (request.context as any).metrics = metrics;
+      (request.context as any).startTime = Date.now();
     },
     after: async (request) => {
-      const metrics = request.context.metrics as Metrics;
-      const startTime = request.context.startTime as number;
+      const metrics = (request.context as any).metrics as Metrics;
+      const startTime = (request.context as any).startTime as number;
 
       metrics.recordDuration('LambdaDuration', startTime);
       metrics.addMetric({ name: 'SuccessfulRequests', value: 1 });
       metrics.flush();
     },
     onError: async (request) => {
-      const metrics = request.context.metrics as Metrics;
+      const metrics = (request.context as any).metrics as Metrics;
       metrics.addMetric({ name: 'FailedRequests', value: 1 });
       metrics.flush();
     },
@@ -72,10 +74,10 @@ export const metricsMiddleware = (): middy.MiddlewareObj => {
 /**
  * Exception handler middleware - formats errors properly
  */
-export const exceptionHandlerMiddleware = (): middy.MiddlewareObj => {
+export const exceptionHandlerMiddleware = (): middy.MiddlewareObj<APIGatewayProxyEvent, APIGatewayProxyResult, Error, MiddyContext> => {
   return {
     onError: async (request) => {
-      const logger = request.context.logger as Logger;
+      const logger = (request.context as any).logger as Logger;
       const error = request.error;
 
       // Log the error
@@ -84,17 +86,17 @@ export const exceptionHandlerMiddleware = (): middy.MiddlewareObj => {
       }
 
       // Handle different error types
-      if (error.statusCode) {
+      if (error && (error as any).statusCode) {
         // Already an HTTP error
         request.response = {
-          statusCode: error.statusCode,
+          statusCode: (error as any).statusCode,
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
           },
           body: JSON.stringify({
             error: error.message || 'An error occurred',
-            ...(error.details && { details: error.details }),
+            ...((error as any).details && { details: (error as any).details }),
           }),
         };
       } else {
@@ -120,11 +122,11 @@ export const exceptionHandlerMiddleware = (): middy.MiddlewareObj => {
 /**
  * Authorization middleware - checks if user is authenticated
  */
-export const authMiddleware = (): middy.MiddlewareObj => {
+export const authMiddleware = (): middy.MiddlewareObj<APIGatewayProxyEvent, APIGatewayProxyResult, Error, MiddyContext> => {
   return {
     before: async (request) => {
       const userId = request.event.requestContext?.authorizer?.claims?.sub;
-      const logger = request.context.logger as Logger;
+      const logger = (request.context as any).logger as Logger;
 
       if (!userId) {
         logger?.warn('Unauthorized access attempt');
@@ -134,32 +136,7 @@ export const authMiddleware = (): middy.MiddlewareObj => {
       }
 
       // Add userId to context for easy access
-      request.context.userId = userId;
+      (request.context as any).userId = userId;
     },
   };
 };
-
-/**
- * Custom error class for HTTP errors
- */
-export class HttpError extends Error {
-  statusCode: number;
-  details?: any;
-
-  constructor(statusCode: number, message: string, details?: any) {
-    super(message);
-    this.statusCode = statusCode;
-    this.details = details;
-    this.name = 'HttpError';
-  }
-}
-
-export const createHttpError = {
-  badRequest: (message: string, details?: any) => new HttpError(400, message, details),
-  unauthorized: (message: string = 'Unauthorized') => new HttpError(401, message),
-  forbidden: (message: string = 'Forbidden') => new HttpError(403, message),
-  notFound: (message: string = 'Resource not found') => new HttpError(404, message),
-  conflict: (message: string = 'Conflict') => new HttpError(409, message),
-  internalError: (message: string = 'Internal server error') => new HttpError(500, message),
-};
-
