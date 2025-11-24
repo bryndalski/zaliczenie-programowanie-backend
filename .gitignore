@@ -1,28 +1,53 @@
-.vscode
-.intelij
-.cudo
-.qudo
-.terraform
-terraform.lock.hcl
-terraform/.terraform
-.idea
-.qodo
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Terraform
+.terraform/
 .terraform.lock.hcl
-node_modules
-.qodo
-dist
-build
+terraform.tfstate*
+terraform.tfvars
+tfplan
+
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+out/
+
+# Environment files
 .env
 .env.local
 .env.development.local
-node_modules/
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+.env.test.local
+.env.production.local
 
-dist
-node_modules
-# dependencies
-/node_modules
-/.pnp
+# Next.js
+/.next/
+next-env.d.ts
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+.pnp/
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -30,32 +55,56 @@ node_modules
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# Optional npm cache directory
+.npm
 
-# next.js
-/.next/
-/out/
+# Optional eslint cache
+.eslintcache
 
-# production
-/build
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
 
-# misc
-.DS_Store
-*.pem
+# Optional REPL history
+.node_repl_history
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# Output of 'npm pack'
+*.tgz
 
-# env files (can opt-in for committing if needed)
-.env*
+# Yarn Integrity file
+.yarn-integrity
 
-# vercel
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+
+# Editor backup files
+*~
+.#*
+\#*\#
+*.tmp
+*.bak
