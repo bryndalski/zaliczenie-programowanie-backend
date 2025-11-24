@@ -1,6 +1,7 @@
 .vscode
 .intelij
 .cudo
+.qudo
 .terraform
 terraform.lock.hcl
 terraform/.terraform
