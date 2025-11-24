@@ -1,54 +1,68 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, Handler } from 'aws-lambda';
-import middy from '@middy/core';
-import httpJsonBodyParser from '@middy/http-json-body-parser';
-import httpCors from '@middy/http-cors';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
-import { createDynamoDBHelper } from '../../layers/dynamodb/nodejs';
-import {
-  loggerMiddleware,
-  metricsMiddleware,
-  exceptionHandlerMiddleware,
-  authMiddleware,
-  successResponse,
-  MiddyContext,
-} from '../../layers/telemetry/nodejs';
-
-import { NoteEntity, Note } from '../../entities';
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
-const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
-const baseHandler = async (
-  event: APIGatewayProxyEvent,
-  context: Context & MiddyContext
-): Promise<APIGatewayProxyResult> => {
-  const { logger, metrics, userId } = context;
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  console.log('GET /notes - Request received', JSON.stringify(event));
 
-  logger.info('Processing get notes request');
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+  };
 
-  const notesData = await dynamoDB.query(
-    'userId = :userId',
-    { ':userId': userId }
-  );
+  try {
+    // Get userId from Cognito authorizer
+    const userId = event.requestContext?.authorizer?.claims?.sub;
 
-  const notes = notesData.map((data: any) => NoteEntity.fromData(data as Note).toJSON());
+    if (!userId) {
+      console.log('ERROR: No userId found in request context');
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Unauthorized' }),
+      };
+    }
 
-  logger.info('Notes retrieved successfully', { count: notes.length });
-  metrics.addMetric({ name: 'NotesRetrieved', value: notes.length });
+    console.log('Querying notes for userId:', userId);
 
-  return successResponse({
-    notes,
-    count: notes.length,
-  });
+    const result = await docClient.send(new QueryCommand({
+      TableName: NOTES_TABLE_NAME,
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+      },
+    }));
+
+    const notes = result.Items || [];
+    console.log(`SUCCESS: Retrieved ${notes.length} notes`);
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        notes,
+        count: notes.length,
+      }),
+    };
+  } catch (error) {
+    console.error('ERROR:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }),
+    };
+  }
 };
-
-export const handler: Handler<APIGatewayProxyEvent, APIGatewayProxyResult> = middy(baseHandler)
-  .use(loggerMiddleware())
-  .use(metricsMiddleware())
-  .use(authMiddleware())
-  .use(httpJsonBodyParser())
-  .use(httpCors())
-  .use(exceptionHandlerMiddleware());
 
 
 

@@ -1,87 +1,98 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
-import middy from '@middy/core';
-import httpJsonBodyParser from '@middy/http-json-body-parser';
-import httpCors from '@middy/http-cors';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 
-import {
-  createDynamoDBHelper,
-  loggerMiddleware,
-  metricsMiddleware,
-  exceptionHandlerMiddleware,
-  authMiddleware,
-  createHttpError,
-  successResponse,
-  MiddyContext,
-} from '../../layers/telemetry/nodejs';
-
-} from '/opt/nodejs';
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
-const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
-const baseHandler = async (
-  event: APIGatewayProxyEvent,
-  context: Context & MiddyContext
-): Promise<APIGatewayProxyResult> => {
-  const { logger, metrics, userId } = context;
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  console.log('PUT /notes/{noteId} - Request received', JSON.stringify(event));
 
-  logger.info('Processing update note request');
-
-  const noteId = event.pathParameters?.noteId || event.queryStringParameters?.noteId;
-
-  if (!noteId) {
-    logger.warn('Missing noteId parameter');
-    throw createHttpError.badRequest('Missing noteId parameter');
-  }
-
-  // After httpJsonBodyParser middleware, body is parsed
-  const input = event.body as unknown as UpdateNoteInput;
-
-  const existingNoteData = await dynamoDB.get({
-    userId,
-    noteId,
-  });
-
-  if (!existingNoteData) {
-    logger.warn('Note not found', { noteId });
-    throw createHttpError.notFound('Note not found');
-  }
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+  };
 
   try {
-    const noteEntity = NoteEntity.fromData(existingNoteData as Note);
+    const userId = event.requestContext?.authorizer?.claims?.sub;
 
-    if (!noteEntity.belongsToUser(userId)) {
-      logger.warn('Unauthorized update attempt', { noteId, userId });
-      throw createHttpError.forbidden('You do not have permission to update this note');
+    if (!userId) {
+      console.log('ERROR: No userId found in request context');
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Unauthorized' }),
+      };
     }
 
-    noteEntity.update(input);
+    const noteId = event.pathParameters?.noteId;
 
-    await dynamoDB.put(noteEntity.toJSON());
+    if (!noteId) {
+      console.log('ERROR: Missing noteId parameter');
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Missing noteId parameter' }),
+      };
+    }
 
-    logger.info('Note updated successfully', { noteId });
-    metrics.addMetric({ name: 'NotesUpdated', value: 1 });
+    console.log('Fetching note:', noteId);
 
-    return successResponse({
-      message: 'Note updated successfully',
-      note: noteEntity.toJSON(),
-    });
+    const getResult = await docClient.send(new GetCommand({
+      TableName: NOTES_TABLE_NAME,
+      Key: { userId, noteId },
+    }));
 
+    if (!getResult.Item) {
+      console.log('ERROR: Note not found');
+      return {
+        statusCode: 404,
+        headers,
+        body: JSON.stringify({ error: 'Note not found' }),
+      };
+    }
+
+    const body = JSON.parse(event.body || '{}');
+    const { title, content } = body;
+
+    const updatedNote = {
+      ...getResult.Item,
+      ...(title !== undefined && { title }),
+      ...(content !== undefined && { content }),
+      updatedAt: new Date().toISOString(),
+    };
+
+    console.log('Updating note:', noteId);
+
+    await docClient.send(new PutCommand({
+      TableName: NOTES_TABLE_NAME,
+      Item: updatedNote,
+    }));
+
+    console.log('SUCCESS: Note updated');
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        message: 'Note updated successfully',
+        note: updatedNote,
+      }),
+    };
   } catch (error) {
-    if (error instanceof Error && !error.hasOwnProperty('statusCode')) {
-      logger.warn('Validation error', { error: error.message });
-      throw createHttpError.badRequest(error.message);
-    }
-    throw error;
+    console.error('ERROR:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }),
+    };
   }
 };
-
-export const handler: Handler<APIGatewayProxyEvent, APIGatewayProxyResult> = middy(baseHandler)
-export const handler = middy(baseHandler)
-  .use(metricsMiddleware())
-  .use(authMiddleware())
-  .use(httpJsonBodyParser())
-  .use(httpCors())
-  .use(exceptionHandlerMiddleware());
-
 

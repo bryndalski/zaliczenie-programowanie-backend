@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node build.js",
     "package": "mkdir -p dist/layers/deps-layer && cp package*.json dist/layers/deps-layer/ && cp yarn.lock dist/layers/deps-layer/ && cd dist/layers/deps-layer && yarn --frozen-lockfile"
   },
   "repository": {
@@ -30,6 +31,7 @@
     "@types/aws-lambda": "^8.10.145",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
+    "esbuild": "^0.27.0",
     "jest": "^30.2.0",
     "typescript": "^5.0.0"
   }

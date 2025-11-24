@@ -1,64 +1,83 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
-import middy from '@middy/core';
-import httpJsonBodyParser from '@middy/http-json-body-parser';
-import httpCors from '@middy/http-cors';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { randomUUID } from 'crypto';
 
-// Import from Lambda layers
-import {
-  createDynamoDBHelper,
-  loggerMiddleware,
-  metricsMiddleware,
-  exceptionHandlerMiddleware,
-  authMiddleware,
-  createHttpError,
-  createdResponse,
-  MiddyContext,
-} from '../../layers/telemetry/nodejs';
-} from '/opt/nodejs';
-// Import shared entities
-import { NoteEntity, CreateNoteInput } from '../../entities';
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 
 const NOTES_TABLE_NAME = process.env.NOTES_TABLE_NAME!;
-const dynamoDB = createDynamoDBHelper(NOTES_TABLE_NAME);
 
-const baseHandler = async (
-  event: APIGatewayProxyEvent,
-  context: Context & MiddyContext
-): Promise<APIGatewayProxyResult> => {
-  const { logger, metrics, userId } = context;
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  console.log('POST /notes - Request received', JSON.stringify(event));
 
-  logger.info('Processing add note request');
-
-  // After httpJsonBodyParser middleware, body is parsed
-  const input = event.body as unknown as CreateNoteInput;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+  };
 
   try {
-    const noteEntity = NoteEntity.create(userId, input);
+    const userId = event.requestContext?.authorizer?.claims?.sub;
 
-    await dynamoDB.put(noteEntity.toJSON());
-
-    logger.info('Note created successfully', { noteId: noteEntity.noteId });
-    metrics.addMetric({ name: 'NotesCreated', value: 1 });
-
-    return createdResponse({
-      note: noteEntity.toJSON(),
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      logger.warn('Validation error', { error: error.message });
-      throw createHttpError.badRequest(error.message);
+    if (!userId) {
+      console.log('ERROR: No userId found in request context');
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Unauthorized' }),
+      };
     }
-    throw error;
+
+    const body = JSON.parse(event.body || '{}');
+    const { title, content } = body;
+
+    if (!title) {
+      console.log('ERROR: Title is required');
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Title is required' }),
+      };
+    }
+
+    const now = new Date().toISOString();
+    const note = {
+      userId,
+      noteId: randomUUID(),
+      title,
+      content: content || '',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    console.log('Creating note:', note.noteId);
+
+    await docClient.send(new PutCommand({
+      TableName: NOTES_TABLE_NAME,
+      Item: note,
+    }));
+
+    console.log('SUCCESS: Note created');
+
+    return {
+      statusCode: 201,
+      headers,
+      body: JSON.stringify({ note }),
+    };
+  } catch (error) {
+    console.error('ERROR:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }),
+    };
   }
 };
-
-export const handler = middy(baseHandler)
-  .use(loggerMiddleware())
-  .use(metricsMiddleware())
-  .use(authMiddleware())
-  .use(httpJsonBodyParser())
-  .use(httpCors())
-  .use(exceptionHandlerMiddleware());
 
 
 
