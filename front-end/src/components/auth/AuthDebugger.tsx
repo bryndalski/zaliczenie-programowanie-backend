@@ -44,7 +44,7 @@ export default function AuthDebugger() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 bg-white border-2 border-blue-500 rounded-lg p-4 shadow-lg max-w-sm">
+    <div className="fixed bottom-4 right-4 bg-white border-2 border-blue-500 rounded-lg p-4 shadow-lg max-w-sm text-gray-900 font-semibold">
       <h3 className="font-bold text-lg mb-3">Auth Debugger</h3>
 
       <div className="mb-3 text-sm">
@@ -73,7 +73,7 @@ export default function AuthDebugger() {
       {debugInfo && (
         <div className="mt-3">
           <p className="text-xs font-semibold mb-1">Debug Info:</p>
-          <pre className="text-xs bg-gray-100 p-2 rounded max-h-40 overflow-auto">
+          <pre className="text-xs bg-gray-100 p-2 rounded max-h-40 overflow-auto text-gray-800 font-medium">
             {debugInfo}
           </pre>
         </div>
