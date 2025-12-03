@@ -209,65 +209,67 @@ export default function useNotes() {
 
     try {
       const headers = await getAuthHeader();
-      const res = await fetch(`${API_BASE}/notes/update?noteId=${noteId}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(input),
-      });
+      // Backend expects noteId as a path parameter: PUT /notes/{noteId}
+      const res = await fetch(`${API_BASE}/notes/${noteId}`, {
+         method: 'PUT',
+         headers,
+         body: JSON.stringify(input),
+       });
 
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`Update failed: ${res.status} ${txt}`);
-      }
+       if (!res.ok) {
+         const txt = await res.text();
+         throw new Error(`Update failed: ${res.status} ${txt}`);
+       }
 
-      const json = await res.json();
-      const updated = json?.note;
+       const json = await res.json();
+       const updated = json?.note;
 
-      if (updated) {
-        setNotes((prev) =>
-          prev.map((note) => (note.noteId === noteId ? updated : note))
-        );
-      }
+       if (updated) {
+         setNotes((prev) =>
+           prev.map((note) => (note.noteId === noteId ? updated : note))
+         );
+       }
 
-      return updated;
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Failed to update note';
-      setError(message);
-      throw e;
-    } finally {
-      setActionLoading(false);
-    }
-  }, []);
+       return updated;
+     } catch (e: unknown) {
+       const message = e instanceof Error ? e.message : 'Failed to update note';
+       setError(message);
+       throw e;
+     } finally {
+       setActionLoading(false);
+     }
+   }, []);
 
-  const deleteNote = useCallback(async (noteId: string): Promise<void> => {
-    if (!API_BASE) {
-      throw new Error('API base URL is not configured');
-    }
+   const deleteNote = useCallback(async (noteId: string): Promise<void> => {
+     if (!API_BASE) {
+       throw new Error('API base URL is not configured');
+     }
 
-    setActionLoading(true);
-    setError(null);
+     setActionLoading(true);
+     setError(null);
 
-    try {
-      const headers = await getAuthHeader();
-      const res = await fetch(`${API_BASE}/notes/delete?noteId=${noteId}`, {
+     try {
+       const headers = await getAuthHeader();
+      // Backend expects noteId as a path parameter: DELETE /notes/{noteId}
+      const res = await fetch(`${API_BASE}/notes/${noteId}`, {
         method: 'DELETE',
         headers,
       });
 
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`Delete failed: ${res.status} ${txt}`);
-      }
+       if (!res.ok) {
+         const txt = await res.text();
+         throw new Error(`Delete failed: ${res.status} ${txt}`);
+       }
 
-      setNotes((prev) => prev.filter((note) => note.noteId !== noteId));
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Failed to delete note';
-      setError(message);
-      throw e;
-    } finally {
-      setActionLoading(false);
-    }
-  }, []);
+       setNotes((prev) => prev.filter((note) => note.noteId !== noteId));
+     } catch (e: unknown) {
+       const message = e instanceof Error ? e.message : 'Failed to delete note';
+       setError(message);
+       throw e;
+     } finally {
+       setActionLoading(false);
+     }
+   }, []);
 
   useEffect(() => {
     void fetchNotes();
@@ -284,4 +286,3 @@ export default function useNotes() {
     deleteNote,
   };
 }
-
